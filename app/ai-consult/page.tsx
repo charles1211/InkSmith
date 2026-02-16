@@ -101,7 +101,7 @@ const AIConsultation: React.FC = () => {
             </button>
           </form>
           
-          {typeof process !== 'undefined' && !process.env.API_KEY && (
+          {typeof process !== 'undefined' && !process.env.NEXT_PUBLIC_GEMINI_API_KEY && (
             <div className="mt-4 p-3 bg-red-900/20 border border-red-900/50 rounded flex items-center text-red-200 text-sm">
                 <AlertCircle className="w-4 h-4 mr-2" />
                 Note: Gemini API Key is missing in environment variables.

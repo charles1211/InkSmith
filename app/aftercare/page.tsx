@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React, { Suspense, useEffect, useState } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { 
   ShieldCheck, 
@@ -19,7 +19,7 @@ import {
 
 type AftercareType = 'tattoo' | 'piercing';
 
-const Aftercare: React.FC = () => {
+const AftercareContent: React.FC = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<AftercareType>('tattoo');
@@ -347,4 +347,10 @@ const Aftercare: React.FC = () => {
   );
 };
 
-export default Aftercare;
+export default function Aftercare() {
+  return (
+    <Suspense fallback={<div className="min-h-screen bg-ink-950 flex items-center justify-center"><div className="w-8 h-8 border-2 border-ink-accent border-t-transparent rounded-full animate-spin" /></div>}>
+      <AftercareContent />
+    </Suspense>
+  );
+}

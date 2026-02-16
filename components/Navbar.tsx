@@ -1,7 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import { Menu, X, PenTool, ArrowRight, ChevronDown, User, LogOut, LayoutDashboard } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -16,8 +17,8 @@ const Navbar: React.FC = () => {
   const [scrolled, setScrolled] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
   const { user, logout } = useAuth();
 
   // Handle scroll effect
@@ -44,19 +45,19 @@ const Navbar: React.FC = () => {
     setIsOpen(false);
     setDropdownOpen(null);
     setUserMenuOpen(false);
-  }, [location.pathname]);
+  }, [pathname]);
 
   const handleLogout = () => {
     logout();
-    navigate('/');
+    router.push('/');
   };
 
   const navLinks: NavItem[] = [
     { name: 'Home', path: '/' },
     { name: 'Artists', path: '/artists' },
     { name: 'Portfolio', path: '/portfolio' },
-    { 
-      name: 'Aftercare', 
+    {
+      name: 'Aftercare',
       path: '/aftercare',
       children: [
         { name: 'Tattoo', path: '/aftercare?type=tattoo' },
@@ -67,27 +68,27 @@ const Navbar: React.FC = () => {
   ];
 
   const isParentActive = (item: NavItem) => {
-    if (location.pathname === item.path) return true;
+    if (pathname === item.path) return true;
     if (item.children) {
-      return item.children.some(child => location.pathname === child.path.split('?')[0]);
+      return item.children.some(child => pathname === child.path.split('?')[0]);
     }
     return false;
   };
 
   return (
     <>
-      <nav 
+      <nav
         className={`fixed w-full z-50 transition-all duration-500 ease-in-out ${
-          scrolled 
-            ? 'bg-ink-950/80 backdrop-blur-xl border-b border-white/5 py-3 shadow-2xl' 
+          scrolled
+            ? 'bg-ink-950/80 backdrop-blur-xl border-b border-white/5 py-3 shadow-2xl'
             : 'bg-gradient-to-b from-ink-950/80 to-transparent py-6 border-b border-transparent'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
-            
+
             {/* Logo */}
-            <Link to="/" className="flex items-center space-x-3 group relative z-50">
+            <Link href="/" className="flex items-center space-x-3 group relative z-50">
               <div className={`transition-transform duration-500 ${scrolled ? 'scale-90' : 'scale-100'}`}>
                 <PenTool className="h-8 w-8 text-ink-accent group-hover:rotate-12 transition-transform duration-300 drop-shadow-[0_0_10px_rgba(212,175,55,0.3)]" />
               </div>
@@ -100,14 +101,14 @@ const Navbar: React.FC = () => {
             <div className="hidden md:flex items-center space-x-8">
               <div className="flex items-center space-x-6">
                 {navLinks.map((link) => (
-                  <div 
-                    key={link.name} 
+                  <div
+                    key={link.name}
                     className="relative group/dropdown"
                     onMouseEnter={() => setDropdownOpen(link.name)}
                     onMouseLeave={() => setDropdownOpen(null)}
                   >
                     <Link
-                      to={link.path}
+                      href={link.path}
                       className={`relative text-xs font-bold uppercase tracking-[0.2em] transition-colors duration-300 py-4 flex items-center ${
                         isParentActive(link) ? 'text-white' : 'text-gray-400 hover:text-white'
                       }`}
@@ -126,7 +127,7 @@ const Navbar: React.FC = () => {
                           {link.children.map((child) => (
                             <Link
                               key={child.name}
-                              to={child.path}
+                              href={child.path}
                               className="block px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-ink-accent hover:bg-white/5 transition-colors"
                             >
                               {child.name}
@@ -138,7 +139,7 @@ const Navbar: React.FC = () => {
                   </div>
                 ))}
               </div>
-              
+
               <div className="flex items-center space-x-4">
                 {/* User Auth Section */}
                 {user ? (
@@ -161,14 +162,14 @@ const Navbar: React.FC = () => {
                                <span className="inline-block mt-2 px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-bold uppercase rounded border border-red-500/30">Admin</span>
                              )}
                            </div>
-                           
+
                            {user.role === 'admin' && (
-                             <Link to="/admin" className="block px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center">
+                             <Link href="/admin" className="block px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center">
                                <LayoutDashboard className="w-3 h-3 mr-2" /> Dashboard
                              </Link>
                            )}
 
-                           <button 
+                           <button
                             onClick={handleLogout}
                             className="w-full text-left px-6 py-3 text-xs font-bold uppercase tracking-widest text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors flex items-center"
                            >
@@ -178,8 +179,8 @@ const Navbar: React.FC = () => {
                       </div>
                    </div>
                 ) : (
-                  <Link 
-                    to="/login"
+                  <Link
+                    href="/login"
                     className="text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors mr-2"
                   >
                     Login
@@ -187,16 +188,16 @@ const Navbar: React.FC = () => {
                 )}
 
                 {/* CTA Button */}
-                <Link 
-                  to="/book" 
+                <Link
+                  href="/book"
                   className={`group relative px-6 py-2.5 overflow-hidden font-bold tracking-widest uppercase text-xs border transition-all duration-300 ${
-                     scrolled 
-                      ? 'bg-ink-accent text-black border-ink-accent hover:bg-white hover:border-white' 
+                     scrolled
+                      ? 'bg-ink-accent text-black border-ink-accent hover:bg-white hover:border-white'
                       : 'bg-transparent text-white border-white/30 hover:border-white hover:bg-white hover:text-ink-950'
                   }`}
                 >
                   <span className="relative z-10 flex items-center">
-                    Book Now 
+                    Book Now
                   </span>
                 </Link>
               </div>
@@ -217,7 +218,7 @@ const Navbar: React.FC = () => {
       </nav>
 
       {/* Mobile Menu Overlay */}
-      <div 
+      <div
         className={`fixed inset-0 z-40 bg-ink-950/98 backdrop-blur-xl transition-all duration-500 md:hidden flex flex-col justify-center items-center ${
           isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
         }`}
@@ -231,7 +232,7 @@ const Navbar: React.FC = () => {
           {navLinks.map((link, idx) => (
             <div key={link.name} className="flex flex-col items-center">
               <Link
-                to={link.path}
+                href={link.path}
                 className={`text-2xl font-serif font-bold uppercase tracking-widest text-white hover:text-ink-accent transition-all duration-300 transform flex items-center ${
                   isOpen ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
                 }`}
@@ -239,16 +240,16 @@ const Navbar: React.FC = () => {
               >
                 {link.name}
               </Link>
-              
+
               {/* Mobile Submenu */}
               {link.children && (
-                <div className={`mt-4 space-y-4 flex flex-col items-center border-l-2 border-white/10 pl-4 transition-all duration-500 delay-[${idx * 100 + 200}ms] ${
+                <div className={`mt-4 space-y-4 flex flex-col items-center border-l-2 border-white/10 pl-4 transition-all duration-500 ${
                    isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
                 }`}>
                   {link.children.map((child) => (
                     <Link
                       key={child.name}
-                      to={child.path}
+                      href={child.path}
                       className="text-sm font-bold uppercase tracking-[0.2em] text-gray-400 hover:text-ink-accent"
                       onClick={() => setIsOpen(false)}
                     >
@@ -260,7 +261,7 @@ const Navbar: React.FC = () => {
             </div>
           ))}
 
-          <div 
+          <div
              className={`pt-8 border-t border-white/10 w-full max-w-xs mx-auto transition-all duration-500 delay-500 transform ${
               isOpen ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
             }`}
@@ -268,11 +269,11 @@ const Navbar: React.FC = () => {
              {user ? (
                <div className="space-y-4">
                  <div className="text-white text-lg font-serif">{user.name}</div>
-                 
+
                  {/* Admin Link for Mobile */}
                  {user.role === 'admin' && (
-                   <Link 
-                     to="/admin" 
+                   <Link
+                     href="/admin"
                      className="block text-ink-accent uppercase tracking-widest text-sm font-bold flex items-center justify-center gap-2"
                      onClick={() => setIsOpen(false)}
                    >
@@ -284,15 +285,15 @@ const Navbar: React.FC = () => {
                </div>
              ) : (
                 <div className="flex flex-col gap-4">
-                  <Link 
-                    to="/login"
+                  <Link
+                    href="/login"
                     onClick={() => setIsOpen(false)}
                     className="text-gray-400 hover:text-white uppercase tracking-widest text-sm font-bold"
                   >
                     Client Login
                   </Link>
-                  <Link 
-                    to="/book" 
+                  <Link
+                    href="/book"
                     className="inline-flex justify-center items-center px-10 py-4 bg-ink-accent text-ink-950 font-black tracking-[0.2em] uppercase text-sm hover:bg-white transition-colors w-full"
                     onClick={() => setIsOpen(false)}
                   >

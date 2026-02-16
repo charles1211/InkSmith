@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import { Loader2 } from 'lucide-react';
 
@@ -12,17 +12,17 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin = false }) => {
   const { user, isLoading } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   useEffect(() => {
     if (!isLoading) {
       if (!user) {
-        navigate('/login', { replace: true });
+        router.replace('/login');
       } else if (requireAdmin && user.role !== 'admin') {
-        navigate('/', { replace: true });
+        router.replace('/');
       }
     }
-  }, [user, isLoading, requireAdmin, navigate]);
+  }, [user, isLoading, requireAdmin, router]);
 
   if (isLoading) {
     return (
@@ -33,7 +33,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children, requireAdmin 
   }
 
   if (!user || (requireAdmin && user.role !== 'admin')) {
-    return null; // Don't render anything while redirecting
+    return null;
   }
 
   return <>{children}</>;

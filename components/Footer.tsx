@@ -1,5 +1,7 @@
+'use client';
+
 import React from 'react';
-import { Link } from 'react-router-dom';
+import Link from 'next/link';
 import { Instagram, Facebook, MapPin, Mail, Phone } from 'lucide-react';
 
 const Footer: React.FC = () => {
@@ -7,12 +9,12 @@ const Footer: React.FC = () => {
     <footer className="bg-ink-950 border-t border-white/10 pt-16 pb-8">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-12">
-          
+
           {/* Brand */}
           <div className="space-y-4">
             <h3 className="font-serif text-2xl font-bold text-white tracking-widest">INKSMITH</h3>
             <p className="text-gray-400 text-sm leading-relaxed">
-              Premium custom tattooing in a sterile, welcoming environment. 
+              Premium custom tattooing in a sterile, welcoming environment.
               We transform your stories into permanent art.
             </p>
             <div className="flex space-x-4">
@@ -26,16 +28,16 @@ const Footer: React.FC = () => {
             <h4 className="font-bold text-white tracking-wider uppercase text-sm">Studio</h4>
             <div className="grid grid-cols-2 gap-4 text-sm text-gray-400">
               <ul className="space-y-2">
-                <li><Link to="/artists" className="hover:text-ink-accent">Artists</Link></li>
-                <li><Link to="/book" className="hover:text-ink-accent">Book Appointment</Link></li>
-                <li><Link to="/ai-consult" className="hover:text-ink-accent">AI Consultation</Link></li>
+                <li><Link href="/artists" className="hover:text-ink-accent">Artists</Link></li>
+                <li><Link href="/book" className="hover:text-ink-accent">Book Appointment</Link></li>
+                <li><Link href="/ai-consult" className="hover:text-ink-accent">AI Consultation</Link></li>
               </ul>
               <ul className="space-y-2">
-                <li><Link to="/aftercare" className="hover:text-ink-accent">Aftercare</Link></li>
-                <li><Link to="/contact" className="hover:text-ink-accent">Contact</Link></li>
+                <li><Link href="/aftercare" className="hover:text-ink-accent">Aftercare</Link></li>
+                <li><Link href="/contact" className="hover:text-ink-accent">Contact</Link></li>
               </ul>
             </div>
-            
+
             <div className="pt-4 border-t border-white/5 space-y-3 text-gray-400 text-sm">
               <div className="flex items-start space-x-3">
                 <MapPin size={16} className="text-ink-accent mt-1 shrink-0" />
@@ -61,7 +63,7 @@ const Footer: React.FC = () => {
             </ul>
           </div>
         </div>
-        
+
         <div className="mt-12 pt-8 border-t border-white/5 text-center text-gray-600 text-xs">
           <p>&copy; {new Date().getFullYear()} InkSmith Studios. All rights reserved.</p>
         </div>
