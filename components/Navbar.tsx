@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Menu, X, PenTool, ArrowRight, ChevronDown, User, LogOut, LayoutDashboard } from 'lucide-react';
@@ -42,7 +44,7 @@ const Navbar: React.FC = () => {
     setIsOpen(false);
     setDropdownOpen(null);
     setUserMenuOpen(false);
-  }, [location]);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     logout();

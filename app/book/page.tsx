@@ -1,6 +1,8 @@
+'use client';
+
 import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { BookingFormData } from '../types';
+import { useRouter } from 'next/navigation';
+import { BookingFormData } from '../../types';
 import { 
   Upload, 
   CheckCircle, 
@@ -26,7 +28,7 @@ import {
 } from 'lucide-react';
 
 const Booking: React.FC = () => {
-  const navigate = useNavigate();
+  const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const topRef = useRef<HTMLDivElement>(null);
 
@@ -724,7 +726,7 @@ const Booking: React.FC = () => {
              {/* Modal Actions */}
              <div className="p-6 pt-0 flex flex-col sm:flex-row gap-3">
                <button 
-                 onClick={() => navigate('/')}
+                 onClick={() => router.push('/')}
                  className="flex-1 py-3 px-4 border border-white/10 hover:border-white/30 rounded-lg text-sm font-bold uppercase tracking-widest text-gray-300 hover:text-white hover:bg-white/5 transition-all"
                >
                  Return Home

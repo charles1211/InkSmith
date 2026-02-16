@@ -1,3 +1,5 @@
+'use client';
+
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
 // Types
@@ -35,9 +37,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Simulate checking for an existing session on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('inksmith_user');
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
+    // Check if we are in the browser environment
+    if (typeof window !== 'undefined') {
+      const storedUser = localStorage.getItem('inksmith_user');
+      if (storedUser) {
+        setUser(JSON.parse(storedUser));
+      }
     }
     setIsLoading(false);
   }, []);
@@ -51,14 +56,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (email.toLowerCase().includes('admin')) {
           const adminUser: User = { id: 'admin-1', name: 'Studio Admin', email, role: 'admin' };
           setUser(adminUser);
-          localStorage.setItem('inksmith_user', JSON.stringify(adminUser));
+          if (typeof window !== 'undefined') localStorage.setItem('inksmith_user', JSON.stringify(adminUser));
           resolve();
         } 
         // Mock Client Logic
         else if (password.length >= 6) {
           const clientUser: User = { id: 'client-1', name: email.split('@')[0], email, role: 'client' };
           setUser(clientUser);
-          localStorage.setItem('inksmith_user', JSON.stringify(clientUser));
+          if (typeof window !== 'undefined') localStorage.setItem('inksmith_user', JSON.stringify(clientUser));
           resolve();
         } else {
           reject(new Error('Invalid credentials'));
@@ -75,7 +80,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setTimeout(() => {
         const newUser: User = { id: Math.random().toString(36).substr(2, 9), name, email, role: 'client' };
         setUser(newUser);
-        localStorage.setItem('inksmith_user', JSON.stringify(newUser));
+        if (typeof window !== 'undefined') localStorage.setItem('inksmith_user', JSON.stringify(newUser));
         setIsLoading(false);
         resolve();
       }, 1000);
@@ -84,7 +89,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     setUser(null);
-    localStorage.removeItem('inksmith_user');
+    if (typeof window !== 'undefined') localStorage.removeItem('inksmith_user');
   };
 
   return (
