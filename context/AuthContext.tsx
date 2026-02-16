@@ -1,9 +1,11 @@
 'use client';
 
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createClient } from '../lib/supabase/client';
+import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 // Types
-export type UserRole = 'client' | 'admin';
+export type UserRole = 'client' | 'admin' | 'employee';
 
 export interface User {
   id: string;
@@ -18,6 +20,7 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   logout: () => void;
 }
 
@@ -34,66 +37,102 @@ export const useAuth = () => {
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const supabase = createClient();
 
-  // Simulate checking for an existing session on mount
-  useEffect(() => {
-    // Check if we are in the browser environment
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('inksmith_user');
-      if (storedUser) {
-        setUser(JSON.parse(storedUser));
-      }
+  const fetchUserProfile = useCallback(async (supabaseUser: SupabaseUser): Promise<User> => {
+    const { data, error } = await supabase
+      .from('users')
+      .select('id, name, email, role')
+      .eq('id', supabaseUser.id)
+      .single();
+
+    if (error || !data) {
+      // Fallback if users table row doesn't exist yet
+      const email = supabaseUser.email || '';
+      const metadata = supabaseUser.user_metadata || {};
+      return {
+        id: supabaseUser.id,
+        name: metadata.name || email.split('@')[0],
+        email,
+        role: 'client',
+      };
     }
-    setIsLoading(false);
-  }, []);
+
+    return {
+      id: data.id,
+      name: data.name || supabaseUser.email?.split('@')[0] || '',
+      email: data.email,
+      role: data.role as UserRole,
+    };
+  }, [supabase]);
+
+  useEffect(() => {
+    supabase.auth.getUser().then(async ({ data: { user: supabaseUser } }) => {
+      if (supabaseUser) {
+        const profile = await fetchUserProfile(supabaseUser);
+        setUser(profile);
+      }
+      setIsLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      if (session?.user) {
+        const profile = await fetchUserProfile(session.user);
+        setUser(profile);
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, [fetchUserProfile, supabase.auth]);
 
   const login = async (email: string, password: string) => {
     setIsLoading(true);
-    // SIMULATED API CALL
-    return new Promise<void>((resolve, reject) => {
-      setTimeout(() => {
-        // Mock Admin Logic
-        if (email.toLowerCase().includes('admin')) {
-          const adminUser: User = { id: 'admin-1', name: 'Studio Admin', email, role: 'admin' };
-          setUser(adminUser);
-          if (typeof window !== 'undefined') localStorage.setItem('inksmith_user', JSON.stringify(adminUser));
-          resolve();
-        } 
-        // Mock Client Logic
-        else if (password.length >= 6) {
-          const clientUser: User = { id: 'client-1', name: email.split('@')[0], email, role: 'client' };
-          setUser(clientUser);
-          if (typeof window !== 'undefined') localStorage.setItem('inksmith_user', JSON.stringify(clientUser));
-          resolve();
-        } else {
-          reject(new Error('Invalid credentials'));
-        }
-        setIsLoading(false);
-      }, 1000);
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    setIsLoading(false);
+    if (error) {
+      throw new Error(error.message);
+    }
   };
 
   const signup = async (name: string, email: string, password: string) => {
     setIsLoading(true);
-    // SIMULATED API CALL
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        const newUser: User = { id: Math.random().toString(36).substr(2, 9), name, email, role: 'client' };
-        setUser(newUser);
-        if (typeof window !== 'undefined') localStorage.setItem('inksmith_user', JSON.stringify(newUser));
-        setIsLoading(false);
-        resolve();
-      }, 1000);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { name },
+      },
     });
+    setIsLoading(false);
+    if (error) {
+      throw new Error(error.message);
+    }
   };
 
-  const logout = () => {
+  const signInWithGoogle = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+    if (error) {
+      throw new Error(error.message);
+    }
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
     setUser(null);
-    if (typeof window !== 'undefined') localStorage.removeItem('inksmith_user');
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, signup, signInWithGoogle, logout }}>
       {children}
     </AuthContext.Provider>
   );

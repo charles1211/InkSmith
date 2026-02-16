@@ -21,6 +21,8 @@ const Navbar: React.FC = () => {
   const router = useRouter();
   const { user, logout } = useAuth();
 
+  console.log(user);
+
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -78,11 +80,10 @@ const Navbar: React.FC = () => {
   return (
     <>
       <nav
-        className={`fixed w-full z-50 transition-all duration-500 ease-in-out ${
-          scrolled
+        className={`fixed w-full z-50 transition-all duration-500 ease-in-out ${scrolled
             ? 'bg-ink-950/80 backdrop-blur-xl border-b border-white/5 py-3 shadow-2xl'
             : 'bg-gradient-to-b from-ink-950/80 to-transparent py-6 border-b border-transparent'
-        }`}
+          }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
@@ -109,15 +110,13 @@ const Navbar: React.FC = () => {
                   >
                     <Link
                       href={link.path}
-                      className={`relative text-xs font-bold uppercase tracking-[0.2em] transition-colors duration-300 py-4 flex items-center ${
-                        isParentActive(link) ? 'text-white' : 'text-gray-400 hover:text-white'
-                      }`}
+                      className={`relative text-xs font-bold uppercase tracking-[0.2em] transition-colors duration-300 py-4 flex items-center ${isParentActive(link) ? 'text-white' : 'text-gray-400 hover:text-white'
+                        }`}
                     >
                       {link.name}
                       {link.children && <ChevronDown className="w-3 h-3 ml-1" />}
-                      <span className={`absolute bottom-2 left-0 w-full h-px bg-ink-accent transform origin-left transition-transform duration-300 ${
-                        isParentActive(link) ? 'scale-x-100' : 'scale-x-0 group-hover/dropdown:scale-x-50'
-                      }`} />
+                      <span className={`absolute bottom-2 left-0 w-full h-px bg-ink-accent transform origin-left transition-transform duration-300 ${isParentActive(link) ? 'scale-x-100' : 'scale-x-0 group-hover/dropdown:scale-x-50'
+                        }`} />
                     </Link>
 
                     {/* Dropdown Menu */}
@@ -143,41 +142,41 @@ const Navbar: React.FC = () => {
               <div className="flex items-center space-x-4">
                 {/* User Auth Section */}
                 {user ? (
-                   <div className="relative" onMouseEnter={() => setUserMenuOpen(true)} onMouseLeave={() => setUserMenuOpen(false)}>
-                      <button className="flex items-center space-x-2 text-sm font-bold text-white hover:text-ink-accent transition-colors py-2">
-                         <div className="w-8 h-8 rounded-full bg-ink-accent/10 border border-ink-accent/30 flex items-center justify-center text-ink-accent">
-                            <User className="w-4 h-4" />
-                         </div>
-                         <span className="uppercase tracking-wide text-xs">{user.name.split(' ')[0]}</span>
-                         <ChevronDown className="w-3 h-3" />
-                      </button>
-
-                      {/* User Dropdown */}
-                      <div className={`absolute top-full right-0 w-56 pt-2 transition-all duration-300 transform ${userMenuOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
-                        <div className="bg-ink-950/95 backdrop-blur-xl border border-white/10 rounded-lg overflow-hidden shadow-2xl">
-                           <div className="px-6 py-4 border-b border-white/5">
-                             <p className="text-white text-sm font-bold truncate">{user.name}</p>
-                             <p className="text-gray-500 text-xs truncate">{user.email}</p>
-                             {user.role === 'admin' && (
-                               <span className="inline-block mt-2 px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-bold uppercase rounded border border-red-500/30">Admin</span>
-                             )}
-                           </div>
-
-                           {user.role === 'admin' && (
-                             <Link href="/admin" className="block px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center">
-                               <LayoutDashboard className="w-3 h-3 mr-2" /> Dashboard
-                             </Link>
-                           )}
-
-                           <button
-                            onClick={handleLogout}
-                            className="w-full text-left px-6 py-3 text-xs font-bold uppercase tracking-widest text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors flex items-center"
-                           >
-                             <LogOut className="w-3 h-3 mr-2" /> Logout
-                           </button>
-                        </div>
+                  <div className="relative" onMouseEnter={() => setUserMenuOpen(true)} onMouseLeave={() => setUserMenuOpen(false)}>
+                    <button className="flex items-center space-x-2 text-sm font-bold text-white hover:text-ink-accent transition-colors py-2">
+                      <div className="w-8 h-8 rounded-full bg-ink-accent/10 border border-ink-accent/30 flex items-center justify-center text-ink-accent">
+                        <User className="w-4 h-4" />
                       </div>
-                   </div>
+                      <span className="uppercase tracking-wide text-xs">{user.name.split(' ')[0]}</span>
+                      <ChevronDown className="w-3 h-3" />
+                    </button>
+
+                    {/* User Dropdown */}
+                    <div className={`absolute top-full right-0 w-56 pt-2 transition-all duration-300 transform ${userMenuOpen ? 'opacity-100 visible translate-y-0' : 'opacity-0 invisible translate-y-2'}`}>
+                      <div className="bg-ink-950/95 backdrop-blur-xl border border-white/10 rounded-lg overflow-hidden shadow-2xl">
+                        <div className="px-6 py-4 border-b border-white/5">
+                          <p className="text-white text-sm font-bold truncate">{user.name}</p>
+                          <p className="text-gray-500 text-xs truncate">{user.email}</p>
+                          {user.role === 'admin' && (
+                            <span className="inline-block mt-2 px-2 py-0.5 bg-red-500/20 text-red-400 text-[10px] font-bold uppercase rounded border border-red-500/30">Admin</span>
+                          )}
+                        </div>
+
+                        {user.role === 'admin' && (
+                          <Link href="/admin" className="block px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 transition-colors flex items-center">
+                            <LayoutDashboard className="w-3 h-3 mr-2" /> Dashboard
+                          </Link>
+                        )}
+
+                        <button
+                          onClick={handleLogout}
+                          className="w-full text-left px-6 py-3 text-xs font-bold uppercase tracking-widest text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors flex items-center"
+                        >
+                          <LogOut className="w-3 h-3 mr-2" /> Logout
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                 ) : (
                   <Link
                     href="/login"
@@ -190,11 +189,10 @@ const Navbar: React.FC = () => {
                 {/* CTA Button */}
                 <Link
                   href="/book"
-                  className={`group relative px-6 py-2.5 overflow-hidden font-bold tracking-widest uppercase text-xs border transition-all duration-300 ${
-                     scrolled
+                  className={`group relative px-6 py-2.5 overflow-hidden font-bold tracking-widest uppercase text-xs border transition-all duration-300 ${scrolled
                       ? 'bg-ink-accent text-black border-ink-accent hover:bg-white hover:border-white'
                       : 'bg-transparent text-white border-white/30 hover:border-white hover:bg-white hover:text-ink-950'
-                  }`}
+                    }`}
                 >
                   <span className="relative z-10 flex items-center">
                     Book Now
@@ -219,13 +217,12 @@ const Navbar: React.FC = () => {
 
       {/* Mobile Menu Overlay */}
       <div
-        className={`fixed inset-0 z-40 bg-ink-950/98 backdrop-blur-xl transition-all duration-500 md:hidden flex flex-col justify-center items-center ${
-          isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
-        }`}
+        className={`fixed inset-0 z-40 bg-ink-950/98 backdrop-blur-xl transition-all duration-500 md:hidden flex flex-col justify-center items-center ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+          }`}
       >
         <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-           <div className="absolute top-1/4 right-0 w-64 h-64 bg-ink-accent/5 rounded-full blur-[80px]"></div>
-           <div className="absolute bottom-1/4 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px]"></div>
+          <div className="absolute top-1/4 right-0 w-64 h-64 bg-ink-accent/5 rounded-full blur-[80px]"></div>
+          <div className="absolute bottom-1/4 left-0 w-64 h-64 bg-blue-500/5 rounded-full blur-[80px]"></div>
         </div>
 
         <nav className="flex flex-col space-y-6 text-center relative z-10 w-full px-8 max-h-[80vh] overflow-y-auto">
@@ -233,9 +230,8 @@ const Navbar: React.FC = () => {
             <div key={link.name} className="flex flex-col items-center">
               <Link
                 href={link.path}
-                className={`text-2xl font-serif font-bold uppercase tracking-widest text-white hover:text-ink-accent transition-all duration-300 transform flex items-center ${
-                  isOpen ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-                }`}
+                className={`text-2xl font-serif font-bold uppercase tracking-widest text-white hover:text-ink-accent transition-all duration-300 transform flex items-center ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+                  }`}
                 style={{ transitionDelay: `${idx * 100}ms` }}
               >
                 {link.name}
@@ -243,9 +239,8 @@ const Navbar: React.FC = () => {
 
               {/* Mobile Submenu */}
               {link.children && (
-                <div className={`mt-4 space-y-4 flex flex-col items-center border-l-2 border-white/10 pl-4 transition-all duration-500 ${
-                   isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
-                }`}>
+                <div className={`mt-4 space-y-4 flex flex-col items-center border-l-2 border-white/10 pl-4 transition-all duration-500 ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'
+                  }`}>
                   {link.children.map((child) => (
                     <Link
                       key={child.name}
@@ -262,45 +257,44 @@ const Navbar: React.FC = () => {
           ))}
 
           <div
-             className={`pt-8 border-t border-white/10 w-full max-w-xs mx-auto transition-all duration-500 delay-500 transform ${
-              isOpen ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
-            }`}
+            className={`pt-8 border-t border-white/10 w-full max-w-xs mx-auto transition-all duration-500 delay-500 transform ${isOpen ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'
+              }`}
           >
-             {user ? (
-               <div className="space-y-4">
-                 <div className="text-white text-lg font-serif">{user.name}</div>
+            {user ? (
+              <div className="space-y-4">
+                <div className="text-white text-lg font-serif">{user.name}</div>
 
-                 {/* Admin Link for Mobile */}
-                 {user.role === 'admin' && (
-                   <Link
-                     href="/admin"
-                     className="block text-ink-accent uppercase tracking-widest text-sm font-bold flex items-center justify-center gap-2"
-                     onClick={() => setIsOpen(false)}
-                   >
-                     <LayoutDashboard className="w-4 h-4" /> Admin Dashboard
-                   </Link>
-                 )}
-
-                 <button onClick={() => { handleLogout(); setIsOpen(false); }} className="text-red-400 uppercase tracking-widest text-sm font-bold">Sign Out</button>
-               </div>
-             ) : (
-                <div className="flex flex-col gap-4">
+                {/* Admin Link for Mobile */}
+                {user.role === 'admin' && (
                   <Link
-                    href="/login"
-                    onClick={() => setIsOpen(false)}
-                    className="text-gray-400 hover:text-white uppercase tracking-widest text-sm font-bold"
-                  >
-                    Client Login
-                  </Link>
-                  <Link
-                    href="/book"
-                    className="inline-flex justify-center items-center px-10 py-4 bg-ink-accent text-ink-950 font-black tracking-[0.2em] uppercase text-sm hover:bg-white transition-colors w-full"
+                    href="/admin"
+                    className="block text-ink-accent uppercase tracking-widest text-sm font-bold flex items-center justify-center gap-2"
                     onClick={() => setIsOpen(false)}
                   >
-                    Book Appointment <ArrowRight className="ml-2 w-4 h-4" />
+                    <LayoutDashboard className="w-4 h-4" /> Admin Dashboard
                   </Link>
-                </div>
-             )}
+                )}
+
+                <button onClick={() => { handleLogout(); setIsOpen(false); }} className="text-red-400 uppercase tracking-widest text-sm font-bold">Sign Out</button>
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
+                <Link
+                  href="/login"
+                  onClick={() => setIsOpen(false)}
+                  className="text-gray-400 hover:text-white uppercase tracking-widest text-sm font-bold"
+                >
+                  Client Login
+                </Link>
+                <Link
+                  href="/book"
+                  className="inline-flex justify-center items-center px-10 py-4 bg-ink-accent text-ink-950 font-black tracking-[0.2em] uppercase text-sm hover:bg-white transition-colors w-full"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Book Appointment <ArrowRight className="ml-2 w-4 h-4" />
+                </Link>
+              </div>
+            )}
           </div>
         </nav>
       </div>
