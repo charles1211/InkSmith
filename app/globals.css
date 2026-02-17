@@ -15,6 +15,205 @@ body {
   color: #e5e5e5;
 }
 
+/* ===== SCROLL-TRIGGERED ANIMATIONS ===== */
+/* Rules:
+   - Only animate `transform` and `opacity` — both are GPU-composited.
+   - Never animate width, height, clip-path, filter, letter-spacing, top, left.
+   - Use animation-fill-mode: both so from-keyframe holds during delay (no flash).
+   - will-change promotes element to its own compositor layer for jank-free playback.
+*/
+
+/* 1. Hero - Cinematic staggered reveal */
+@keyframes hero-title-reveal {
+  /* Removed filter:blur — expensive, not composited, causes main-thread paint */
+  0%   { opacity: 0; transform: translateY(60px) skewY(3deg); }
+  100% { opacity: 1; transform: translateY(0px) skewY(0deg); }
+}
+@keyframes hero-badge-drop {
+  0%   { opacity: 0; transform: translateY(-30px) scale(0.8); }
+  60%  {              transform: translateY(5px)   scale(1.02); }
+  100% { opacity: 1; transform: translateY(0px)   scale(1); }
+}
+@keyframes hero-buttons-rise {
+  0%   { opacity: 0; transform: translateY(40px); }
+  100% { opacity: 1; transform: translateY(0px); }
+}
+/* scaleX instead of width — width causes layout recalc every frame */
+@keyframes hero-line-expand {
+  0%   { opacity: 0; transform: scaleX(0); }
+  100% { opacity: 1; transform: scaleX(1); }
+}
+
+/* 2. Intro - Slide from sides */
+@keyframes slide-in-left {
+  0%   { opacity: 0; transform: translateX(-70px); }
+  100% { opacity: 1; transform: translateX(0px); }
+}
+@keyframes slide-in-right {
+  0%   { opacity: 0; transform: translateX(70px); }
+  100% { opacity: 1; transform: translateX(0px); }
+}
+
+/* 3. Features Grid - Staggered flip-up cards */
+@keyframes flip-up {
+  0%   { opacity: 0; transform: perspective(800px) rotateX(12deg) translateY(30px); }
+  100% { opacity: 1; transform: perspective(800px) rotateX(0deg)  translateY(0px); }
+}
+
+/* 4. Studio Showcase - Curtain open */
+@keyframes curtain-open-left {
+  0%   { opacity: 0; transform: translateX(-50px) scale(0.96); }
+  100% { opacity: 1; transform: translateX(0px)   scale(1); }
+}
+@keyframes fade-in-scale {
+  0%   { opacity: 0; transform: scale(0.92); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* 5. Gallery - Mosaic cascade */
+/* Removed clip-path — not GPU-composited on all browsers, causes repaint */
+@keyframes mosaic-reveal {
+  0%   { opacity: 0; transform: scale(0.75) rotate(-1.5deg); }
+  100% { opacity: 1; transform: scale(1)    rotate(0deg); }
+}
+/* Removed letter-spacing — causes text reflow every frame */
+@keyframes gallery-title-draw {
+  0%   { opacity: 0; transform: translateY(28px); }
+  100% { opacity: 1; transform: translateY(0px); }
+}
+
+/* 6. Piercing - Elastic entrance */
+@keyframes elastic-in-left {
+  0%   { opacity: 0; transform: translateX(-90px) scale(0.92); }
+  55%  { opacity: 1; transform: translateX(8px)   scale(1.01); }
+  100% { opacity: 1; transform: translateX(0px)   scale(1); }
+}
+@keyframes elastic-in-right {
+  0%   { opacity: 0; transform: translateX(90px)  scale(0.92); }
+  55%  { opacity: 1; transform: translateX(-8px)  scale(1.01); }
+  100% { opacity: 1; transform: translateX(0px)   scale(1); }
+}
+@keyframes cascade-up {
+  0%   { opacity: 0; transform: translateY(44px) scale(0.88); }
+  100% { opacity: 1; transform: translateY(0px)  scale(1); }
+}
+
+/* 7. Pre-Footer CTA - Zoom pulse */
+@keyframes zoom-pulse-in {
+  0%   { opacity: 0; transform: scale(0.82); }
+  65%  { opacity: 1; transform: scale(1.02); }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes cta-underline-sweep {
+  /* scaleX instead of width */
+  0%   { transform: scaleX(0); }
+  100% { transform: scaleX(1); }
+}
+
+/* ── Shared invisible state ── */
+.scroll-hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ── Animation classes ──
+   fill-mode: both = hold `from` keyframe during delay (prevents flash),
+                     hold `to` keyframe after completion.
+   will-change    = promotes element to its own compositor layer.
+   backface-visibility: hidden = additional GPU layer hint.
+*/
+.anim-hero-title {
+  animation: hero-title-reveal 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+.anim-hero-badge {
+  animation: hero-badge-drop 0.75s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+.anim-hero-buttons {
+  animation: hero-buttons-rise 0.75s cubic-bezier(0.16, 1, 0.3, 1) 0.55s both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+.anim-hero-line {
+  animation: hero-line-expand 0.55s ease-out 0.38s both;
+  transform-origin: left center;
+  will-change: transform, opacity;
+}
+
+.anim-slide-left {
+  animation: slide-in-left 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+.anim-slide-right {
+  animation: slide-in-right 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.anim-flip-up   { animation: flip-up 0.65s cubic-bezier(0.16, 1, 0.3, 1)        both; will-change: transform, opacity; backface-visibility: hidden; }
+.anim-flip-up-1 { animation: flip-up 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.08s  both; will-change: transform, opacity; backface-visibility: hidden; }
+.anim-flip-up-2 { animation: flip-up 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.22s  both; will-change: transform, opacity; backface-visibility: hidden; }
+.anim-flip-up-3 { animation: flip-up 0.65s cubic-bezier(0.16, 1, 0.3, 1) 0.36s  both; will-change: transform, opacity; backface-visibility: hidden; }
+
+.anim-curtain-left {
+  animation: curtain-open-left 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+.anim-fade-scale {
+  animation: fade-in-scale 0.9s ease-out 0.25s both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.anim-gallery-title {
+  animation: gallery-title-draw 0.75s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+.anim-mosaic {
+  animation: mosaic-reveal 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.anim-elastic-left {
+  animation: elastic-in-left 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+.anim-elastic-right {
+  animation: elastic-in-right 0.9s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+.anim-cascade {
+  animation: cascade-up 0.55s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+
+.anim-zoom-pulse {
+  animation: zoom-pulse-in 0.85s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, opacity;
+  backface-visibility: hidden;
+}
+.anim-underline-sweep::after {
+  content: '';
+  display: block;
+  height: 2px;
+  background: var(--color-ink-accent);
+  /* scaleX instead of width — no layout recalc */
+  transform: scaleX(0);
+  transform-origin: left center;
+  animation: cta-underline-sweep 0.75s ease-out 0.45s both;
+  will-change: transform;
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }
