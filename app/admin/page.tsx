@@ -13,6 +13,8 @@ import OverviewSection, { Booking } from '../../components/admin/OverviewSection
 import BookingsSection from '../../components/admin/BookingsSection';
 import ArtistsSection from '../../components/admin/ArtistsSection';
 import GallerySection from '../../components/admin/GallerySection';
+import StudioImages from '../../components/admin/StudioImages';
+import PiercingImages from '../../components/admin/piercingImages';
 
 // ─── MOCK DATA ─────────────────────────────────────────────────────────────────
 
@@ -140,6 +142,10 @@ const AdminContent: React.FC = () => {
         );
       case 'gallery':
         return <GallerySection />;
+      case 'studio':
+        return <StudioImages />;
+      case 'piercing':
+        return <PiercingImages />;
       default:
         return null;
     }
@@ -157,7 +163,7 @@ const AdminContent: React.FC = () => {
         <div className="max-w-7xl mx-auto">
           {/* Mobile Tab Nav */}
           <div className="lg:hidden mb-6 flex space-x-2 overflow-x-auto pb-2">
-            {['overview', 'bookings', 'artists', 'gallery'].map(tab => (
+            {['overview', 'bookings', 'artists', 'gallery', 'studio', 'piercing'].map(tab => (
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab)}

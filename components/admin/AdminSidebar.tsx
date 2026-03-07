@@ -4,6 +4,8 @@ import {
   Calendar,
   Users,
   Image as ImageIcon,
+  Camera,
+  Zap,
   Settings,
 } from 'lucide-react';
 
@@ -12,6 +14,8 @@ const NAV_ITEMS = [
   { id: 'bookings', icon: Calendar, label: 'Bookings' },
   { id: 'artists', icon: Users, label: 'Artists', showBadge: true },
   { id: 'gallery', icon: ImageIcon, label: 'Gallery' },
+  { id: 'studio', icon: Camera, label: 'Studio Images' },
+  { id: 'piercing', icon: Zap, label: 'Piercing Images' },
   { id: 'settings', icon: Settings, label: 'Settings' },
 ] as const;
 

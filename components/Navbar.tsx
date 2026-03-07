@@ -15,18 +15,22 @@ interface NavItem {
 const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [scrollProgress, setScrollProgress] = useState(0);
   const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { user, logout } = useAuth();
 
-  // Handle scroll effect
+  // Handle scroll effect + progress bar
   useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
+      const doc = document.documentElement;
+      const progress = (doc.scrollTop / (doc.scrollHeight - doc.clientHeight)) * 100;
+      setScrollProgress(Math.min(progress, 100));
     };
-    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
@@ -75,10 +79,11 @@ const Navbar: React.FC = () => {
     return false;
   };
 
-  console.log(user);
-
   return (
     <>
+      {/* Scroll progress bar */}
+      <div className="fixed top-0 left-0 z-60 h-[2px] bg-ink-accent transition-all duration-100 ease-out" style={{ width: `${scrollProgress}%` }} />
+
       <nav
         className={`fixed w-full z-50 transition-all duration-500 ease-in-out ${scrolled
           ? 'bg-ink-950/80 backdrop-blur-xl border-b border-white/5 py-3 shadow-2xl'
