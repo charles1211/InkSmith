@@ -25,7 +25,7 @@ export default function RootLayout({
         <Providers>
           <Navbar />
           <ScrollToTop />
-          <main className="flex-grow">
+          <main className="grow">
             {children}
           </main>
           <Footer />

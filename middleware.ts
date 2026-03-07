@@ -36,8 +36,14 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh the auth session
-  await supabase.auth.getUser();
+  // Refresh the auth session — wrapped in try/catch so a network failure
+  // (e.g. Supabase project paused, missing env vars, transient error)
+  // never crashes the middleware and blocks every page request.
+  try {
+    await supabase.auth.getUser();
+  } catch {
+    // Supabase unreachable — allow the request through without a session.
+  }
 
   return supabaseResponse;
 }

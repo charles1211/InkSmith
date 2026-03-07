@@ -2,35 +2,45 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { X, ChevronLeft, ChevronRight, Search, User, Tag, RotateCcw, ChevronDown } from 'lucide-react';
+import { createClient } from '../../lib/supabase/client';
 
-// Mock data configuration
 const categories = ['Realism', 'Traditional', 'Japanese', 'Blackwork', 'Fine Line', 'Color', 'Watercolor'];
-const artistsList = ['Romark', 'Viper', 'Kenji', 'Sarah'];
-const adjectives = ['Eternal', 'Dark', 'Crimson', 'Silent', 'Golden', 'Fierce', 'Gentle', 'Wild', 'Mystic', 'Broken'];
-const nouns = ['Dragon', 'Rose', 'Skull', 'Warrior', 'Tiger', 'Lotus', 'Serpent', 'Dagger', 'Phoenix', 'Wolf'];
 
-// Generate deterministic mock data with searchable titles
-const portfolioItems = Array.from({ length: 32 }).map((_, i) => ({
-  id: i,
-  src: `https://picsum.photos/800/${i % 3 === 0 ? 1000 : i % 2 === 0 ? 800 : 600}?random=${i + 200}`,
-  category: categories[i % categories.length],
-  title: `${adjectives[i % adjectives.length]} ${nouns[(i + 2) % nouns.length]}`,
-  artist: artistsList[i % artistsList.length]
-}));
+type PortfolioItem = { id: string; src: string; category: string; title: string; artist: string };
 
 const Portfolio: React.FC = () => {
+  const [portfolioItems, setPortfolioItems] = useState<PortfolioItem[]>([]);
+  const [artistsList, setArtistsList] = useState<string[]>([]);
+
   // Filter States
   const [searchTitle, setSearchTitle] = useState('');
   const [selectedType, setSelectedType] = useState('All');
   const [selectedArtist, setSelectedArtist] = useState('All');
-  
+
   // UI States
   const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(null);
   const [isLoaded, setIsLoaded] = useState(false);
 
   useEffect(() => {
-    setIsLoaded(true);
     window.scrollTo(0, 0);
+    const load = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('portfolio_images')
+        .select('*')
+        .order('created_at', { ascending: false });
+      const items: PortfolioItem[] = (data ?? []).map(r => ({
+        id: r.id,
+        src: r.src,
+        title: r.title,
+        category: r.category,
+        artist: r.artist ?? '',
+      }));
+      setPortfolioItems(items);
+      setArtistsList([...new Set(items.map(i => i.artist).filter(Boolean))]);
+      setIsLoaded(true);
+    };
+    load();
   }, []);
 
   // Filter Logic
@@ -42,7 +52,7 @@ const Portfolio: React.FC = () => {
       
       return matchesTitle && matchesType && matchesArtist;
     });
-  }, [searchTitle, selectedType, selectedArtist]);
+  }, [portfolioItems, searchTitle, selectedType, selectedArtist]);
 
   const clearFilters = () => {
     setSearchTitle('');

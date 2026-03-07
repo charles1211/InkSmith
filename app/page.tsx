@@ -94,17 +94,20 @@ const Home: React.FC = () => {
       {/* 1. HERO - Cinematic staggered reveal          */}
       {/* ============================================= */}
       <div className="relative h-screen flex items-center justify-center overflow-hidden z-10">
+        {/* Local hero image */}
         <div
           className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat"
           style={{
-            backgroundImage: 'url("https://images.unsplash.com/photo-1598371839696-5c5bb00bdc29?q=80&w=1920&auto=format&fit=crop")',
-            backgroundAttachment: 'fixed',
-            backgroundPosition: 'center',
-            filter: 'brightness(0.3) contrast(1.1) sepia(0.2)'
+            backgroundImage: 'url("/images/charles.png")',
+            backgroundPosition: 'center top',
           }}
         />
 
-        <div className="absolute inset-0 z-0 bg-gradient-to-b from-ink-950/90 via-transparent to-ink-950" />
+        {/* Dark overlay so text is readable */}
+        <div className="absolute inset-0 z-0 bg-ink-950/60" />
+
+        {/* Bottom-to-top fade blending into the page */}
+        <div className="absolute inset-0 z-0 bg-gradient-to-b from-ink-950/70 via-transparent to-ink-950" />
 
         <div className="absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-ink-950 to-transparent z-10"></div>
         <div className="absolute bottom-0 left-0 w-full h-32 bg-gradient-to-t from-ink-950 to-transparent z-10"></div>

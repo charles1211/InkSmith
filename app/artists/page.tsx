@@ -1,70 +1,23 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
-import { Artist, TattooStyle } from '../../types';
+import { Artist } from '../../types';
 import { Instagram, Calendar, ArrowRight, PenTool } from 'lucide-react';
+import { createClient } from '../../lib/supabase/server';
 
-const mockArtists: Artist[] = [
-  {
-    id: 'romark',
-    name: 'ROMARK',
-    specialties: [TattooStyle.REALISM, TattooStyle.MINIMALIST, TattooStyle.BLACKWORK],
-    bio: '',
-    imageUrl: 'https://picsum.photos/600/800?random=99',
-    instagramHandle: '@romark.inksmithbda',
-    highlights: [
-      'Certified tattoo artist and body piercer',
-      'Recognized for professional works and creativity with almost a decade of experience in the field',
-      'Renowned artist experienced in fine lines while offering versatility with other tattoo styles and techniques',
-      'Trained and certified with proper and safe tattooing and piercing techniques'
-    ]
-  },
-  {
-    id: '1',
-    name: 'ELENA "VIPER" ROSSI',
-    specialties: [TattooStyle.REALISM, TattooStyle.BLACKWORK],
-    bio: 'Specializing in hyper-realistic portraits and dark surrealism. Elena brings 12 years of experience from Milan.',
-    imageUrl: 'https://picsum.photos/600/800?random=10',
-    instagramHandle: '@viper_ink',
-    highlights: [
-      'Specializes in hyper-realistic portraits and dark surrealism',
-      'Brings over 12 years of professional tattooing experience from Milan',
-      'Focuses on high-contrast black and grey realism techniques',
-      'Renowned for exploring macabre and ethereal themes in custom compositions'
-    ]
-  },
-  {
-    id: '2',
-    name: 'KENJI SATO',
-    specialties: [TattooStyle.JAPANESE, TattooStyle.TRADITIONAL],
-    bio: 'Master of large-scale Irezumi bodysuits and traditional Japanese motifs. Honoring ancient techniques with modern safety standards.',
-    imageUrl: 'https://picsum.photos/600/800?random=11',
-    instagramHandle: '@kenji_sato_art',
-    highlights: [
-      'Master artist of large-scale Irezumi bodysuits and Japanese motifs',
-      'Honors ancient traditional techniques while adhering to modern safety standards',
-      'Dedicates extensive time to consulting for storytelling and meaning',
-      'Creates designs that flow seamlessly with the body\'s natural musculature'
-    ]
-  },
-  {
-    id: '3',
-    name: 'SARAH JENKINS',
-    specialties: [TattooStyle.WATERCOLOR, TattooStyle.MINIMALIST],
-    bio: 'Fine lines, floral arrangements, and delicate watercolor splashes. Perfect for first-timers and detailed collectors looking for something softer.',
-    imageUrl: 'https://picsum.photos/600/800?random=12',
-    instagramHandle: '@sarahj_tats',
-    highlights: [
-      'Expert in fine lines, floral arrangements, and watercolor splashes',
-      'Ideal for first-timers and collectors seeking softer, delicate aesthetics',
-      'Background in professional botanical illustration enhances her linework',
-      'Known for precise, ethereal, and custom-designed concepts'
-    ]
-  }
-];
+const Artists = async () => {
+  const supabase = await createClient();
+  const { data } = await supabase.from('artists').select('*').order('created_at', { ascending: true });
 
-const Artists: React.FC = () => {
+  const artists: Artist[] = (data ?? []).map(r => ({
+    id: r.id,
+    name: r.name,
+    specialties: r.specialties ?? [],
+    bio: r.bio ?? '',
+    imageUrl: r.image_url ?? '',
+    instagramHandle: r.instagram_handle ?? '',
+    highlights: r.highlights ?? [],
+  }));
+
   return (
     <div className="min-h-screen bg-ink-950 text-white pt-20">
       
@@ -88,8 +41,38 @@ const Artists: React.FC = () => {
       </div>
 
       {/* Artists List */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32 space-y-32">
-        {mockArtists.map((artist, index) => (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-32">
+        {artists.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-40 text-center">
+            {/* Decorative ring */}
+            <div className="relative mb-10">
+              <div className="w-32 h-32 rounded-full border border-white/5 bg-white/[0.02] flex items-center justify-center">
+                <div className="w-20 h-20 rounded-full border border-ink-accent/20 bg-ink-accent/5 flex items-center justify-center">
+                  <PenTool className="w-8 h-8 text-ink-accent/50" />
+                </div>
+              </div>
+              <div className="absolute inset-0 rounded-full bg-ink-accent/5 blur-2xl -z-10" />
+            </div>
+
+            <p className="text-xs font-bold uppercase tracking-[0.3em] text-ink-accent mb-4">Coming Soon</p>
+            <h2 className="text-4xl md:text-5xl font-serif font-black text-white uppercase tracking-tighter mb-4">
+              Artists Unavailable
+            </h2>
+            <p className="max-w-md text-gray-500 text-base font-light leading-relaxed mb-10">
+              Our roster is being curated. Check back soon to meet the talented artists joining InkSmith.
+            </p>
+
+            <Link
+              href="/book"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-white text-ink-950 font-black tracking-widest hover:bg-ink-accent hover:text-black transition-all duration-300 rounded-sm shadow-[4px_4px_0px_0px_rgba(255,255,255,0.1)] hover:shadow-none hover:translate-x-[2px] hover:translate-y-[2px]"
+            >
+              <Calendar className="w-5 h-5" />
+              Book a Consultation
+            </Link>
+          </div>
+        ) : (
+        <div className="space-y-32">
+        {artists.map((artist, index) => (
           <div 
             key={artist.id} 
             className={`group flex flex-col lg:flex-row gap-12 lg:gap-20 items-center ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
@@ -175,8 +158,10 @@ const Artists: React.FC = () => {
             </div>
           </div>
         ))}
+        </div>
+        )}
       </div>
-      
+
     </div>
   );
 };

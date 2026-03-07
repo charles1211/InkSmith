@@ -21,8 +21,6 @@ const Navbar: React.FC = () => {
   const router = useRouter();
   const { user, logout } = useAuth();
 
-  console.log(user);
-
   // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
@@ -77,12 +75,14 @@ const Navbar: React.FC = () => {
     return false;
   };
 
+  console.log(user);
+
   return (
     <>
       <nav
         className={`fixed w-full z-50 transition-all duration-500 ease-in-out ${scrolled
-            ? 'bg-ink-950/80 backdrop-blur-xl border-b border-white/5 py-3 shadow-2xl'
-            : 'bg-gradient-to-b from-ink-950/80 to-transparent py-6 border-b border-transparent'
+          ? 'bg-ink-950/80 backdrop-blur-xl border-b border-white/5 py-3 shadow-2xl'
+          : 'bg-gradient-to-b from-ink-950/80 to-transparent py-6 border-b border-transparent'
           }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -190,8 +190,8 @@ const Navbar: React.FC = () => {
                 <Link
                   href="/book"
                   className={`group relative px-6 py-2.5 overflow-hidden font-bold tracking-widest uppercase text-xs border transition-all duration-300 ${scrolled
-                      ? 'bg-ink-accent text-black border-ink-accent hover:bg-white hover:border-white'
-                      : 'bg-transparent text-white border-white/30 hover:border-white hover:bg-white hover:text-ink-950'
+                    ? 'bg-ink-accent text-black border-ink-accent hover:bg-white hover:border-white'
+                    : 'bg-transparent text-white border-white/30 hover:border-white hover:bg-white hover:text-ink-950'
                     }`}
                 >
                   <span className="relative z-10 flex items-center">
