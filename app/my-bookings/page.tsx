@@ -304,10 +304,13 @@ export default function MyBookingsPage() {
 
       if (error) throw error;
 
-      const mapped = (data ?? []).map((row: Record<string, unknown>) => ({
-        ...(row as Booking),
-        artist_name: (row.artists as { name: string } | null)?.name ?? null,
-      }));
+      const mapped = (data ?? []).map((row) => {
+        const { artists, ...rest } = row as unknown as Record<string, unknown> & { artists?: { name: string } | null };
+        return {
+          ...(rest as unknown as Booking),
+          artist_name: artists?.name ?? null,
+        };
+      });
 
       setBookings(mapped);
     } catch (err) {
