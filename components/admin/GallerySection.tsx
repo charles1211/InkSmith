@@ -45,7 +45,15 @@ const UploadModal: React.FC<UploadModalProps> = ({ onClose, onUploaded }) => {
   const [entries, setEntries] = useState<FileEntry[]>([]);
   const [uploading, setUploading] = useState(false);
   const [doneCount, setDoneCount] = useState(0);
+  const [artistNames, setArtistNames] = useState<string[]>([]);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.from('artists').select('name').order('name').then(({ data }) => {
+      if (data) setArtistNames(data.map(r => r.name));
+    });
+  }, []);
 
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = Array.from(e.target.files ?? []);
@@ -223,13 +231,17 @@ const UploadModal: React.FC<UploadModalProps> = ({ onClose, onUploaded }) => {
                         ))}
                       </select>
                       {/* Artist */}
-                      <input
+                      <select
                         value={entry.artist}
                         onChange={e => setField(idx, 'artist', e.target.value)}
                         disabled={entry.status !== 'pending'}
-                        placeholder="Artist"
-                        className="flex-1 bg-ink-900 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:border-ink-accent outline-none transition-colors placeholder:text-gray-600 disabled:opacity-60"
-                      />
+                        className="flex-1 bg-ink-900 border border-white/10 rounded-lg px-3 py-2 text-white text-xs focus:border-ink-accent outline-none transition-colors disabled:opacity-60"
+                      >
+                        <option value="">Select artist…</option>
+                        {artistNames.map(name => (
+                          <option key={name} value={name}>{name}</option>
+                        ))}
+                      </select>
                     </div>
                     {entry.status === 'error' && (
                       <p className="text-red-400 text-[10px] truncate">{entry.error}</p>

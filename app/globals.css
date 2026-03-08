@@ -214,6 +214,11 @@ body {
   will-change: transform;
 }
 
+/* Contact page — success ring pulse */
+@keyframes ping {
+  75%, 100% { transform: scale(1.6); opacity: 0; }
+}
+
 ::-webkit-scrollbar {
   width: 8px;
 }

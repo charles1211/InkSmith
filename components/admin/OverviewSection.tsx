@@ -6,13 +6,22 @@ import { Artist } from '../../types';
 
 export type Booking = {
   id: string;
-  client: string;
+  created_at: string;
+  first_name: string;
+  last_name: string;
   email: string;
-  artist: string;
-  date: string;
-  time: string;
-  status: string;
-  type: string;
+  phone: string;
+  services: string[];
+  tattoo_style: string | null;
+  tattoo_style_other: string | null;
+  piercing_placement: string | null;
+  piercing_placement_other: string | null;
+  artist_id: string | null;
+  artist_name: string | null;
+  description: string | null;
+  preferred_date: string | null;
+  reference_url: string | null;
+  status: 'pending' | 'confirmed' | 'completed' | 'cancelled';
 };
 
 interface OverviewSectionProps {
@@ -46,12 +55,12 @@ const OverviewSection: React.FC<OverviewSectionProps> = ({ bookings, artists, op
             >
               <div className="flex items-center space-x-4">
                 <div className="w-10 h-10 rounded-full bg-linear-to-br from-gray-700 to-gray-900 flex items-center justify-center text-sm font-bold text-white">
-                  {booking.client.charAt(0)}
+                  {booking.first_name.charAt(0)}
                 </div>
                 <div>
-                  <p className="text-sm font-bold text-white">{booking.client}</p>
+                  <p className="text-sm font-bold text-white">{booking.first_name} {booking.last_name}</p>
                   <p className="text-xs text-gray-400">
-                    {booking.type} • {booking.date}
+                    {booking.services.join(', ')} • {booking.preferred_date ? new Date(booking.preferred_date).toLocaleDateString() : '—'}
                   </p>
                 </div>
               </div>

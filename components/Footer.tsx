@@ -30,7 +30,6 @@ const Footer: React.FC = () => {
               <ul className="space-y-2">
                 <li><Link href="/artists" className="hover:text-ink-accent">Artists</Link></li>
                 <li><Link href="/book" className="hover:text-ink-accent">Book Appointment</Link></li>
-                <li><Link href="/ai-consult" className="hover:text-ink-accent">AI Consultation</Link></li>
               </ul>
               <ul className="space-y-2">
                 <li><Link href="/aftercare" className="hover:text-ink-accent">Aftercare</Link></li>
@@ -47,7 +46,7 @@ const Footer: React.FC = () => {
                 <Phone size={16} className="text-ink-accent" />
                 <span>+1 (441) 261-8532</span>
               </div>
-               <div className="flex items-center space-x-3">
+              <div className="flex items-center space-x-3">
                 <Mail size={16} className="text-ink-accent" />
                 <span>inksmithbda@gmail.com</span>
               </div>

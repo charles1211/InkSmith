@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Menu, X, PenTool, ArrowRight, ChevronDown, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { Menu, X, PenTool, ArrowRight, ChevronDown, User, LogOut, LayoutDashboard, BookOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 interface NavItem {
@@ -173,6 +173,10 @@ const Navbar: React.FC = () => {
                           </Link>
                         )}
 
+                        <Link href="/my-bookings" className="flex items-center px-6 py-3 text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white hover:bg-white/5 transition-colors">
+                          <BookOpen className="w-3 h-3 mr-2" /> My Bookings
+                        </Link>
+
                         <button
                           onClick={handleLogout}
                           className="w-full text-left px-6 py-3 text-xs font-bold uppercase tracking-widest text-red-400 hover:text-red-300 hover:bg-white/5 transition-colors flex items-center"
@@ -273,12 +277,20 @@ const Navbar: React.FC = () => {
                 {user.role === 'admin' && (
                   <Link
                     href="/admin"
-                    className="block text-ink-accent uppercase tracking-widest text-sm font-bold flex items-center justify-center gap-2"
+                    className="flex items-center justify-center gap-2 text-ink-accent uppercase tracking-widest text-sm font-bold"
                     onClick={() => setIsOpen(false)}
                   >
                     <LayoutDashboard className="w-4 h-4" /> Admin Dashboard
                   </Link>
                 )}
+
+                <Link
+                  href="/my-bookings"
+                  className="flex items-center justify-center gap-2 text-gray-300 hover:text-white uppercase tracking-widest text-sm font-bold transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  <BookOpen className="w-4 h-4" /> My Bookings
+                </Link>
 
                 <button onClick={() => { handleLogout(); setIsOpen(false); }} className="text-red-400 uppercase tracking-widest text-sm font-bold">Sign Out</button>
               </div>

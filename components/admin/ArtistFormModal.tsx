@@ -109,7 +109,10 @@ const ArtistFormModal: React.FC<ArtistFormModalProps> = ({ initial, onSave, onCl
           : `@${form.instagramHandle}`,
         highlights: form.highlights?.filter(h => h.trim()) ?? [],
       };
-      await onSave(cleaned);
+      const timeout = new Promise<never>((_, reject) =>
+        setTimeout(() => reject(new Error('Save timed out — check your Supabase connection or RLS policies.')), 15000)
+      );
+      await Promise.race([onSave(cleaned), timeout]);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to save artist';
       setSaveError(msg);

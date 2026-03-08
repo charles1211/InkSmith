@@ -7,31 +7,56 @@ import {
   ChevronRight, ChevronLeft, PenTool, X, ExternalLink,
 } from 'lucide-react';
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
+import { createClient } from '../lib/supabase/client';
+
+const FALLBACK_STUDIO = [
+  "https://picsum.photos/600/1000?random=10",
+  "https://picsum.photos/600/1000?random=11",
+  "https://picsum.photos/600/1000?random=12",
+  "https://picsum.photos/600/1000?random=13",
+  "https://picsum.photos/600/1000?random=14",
+  "https://picsum.photos/600/1000?random=15",
+];
 
 const Home: React.FC = () => {
-  const studioImages = [
-    "https://picsum.photos/600/1000?random=10",
-    "https://picsum.photos/600/1000?random=11",
-    "https://picsum.photos/600/1000?random=12",
-    "https://picsum.photos/600/1000?random=13",
-    "https://picsum.photos/600/1000?random=14",
-    "https://picsum.photos/600/1000?random=15",
-  ];
+  const [studioImages, setStudioImages] = useState<string[]>(FALLBACK_STUDIO);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.from('studio_images').select('src').order('created_at', { ascending: false }).then(({ data }) => {
+      if (data && data.length > 0) setStudioImages(data.map(r => r.src));
+    });
+  }, []);
 
   const carouselImages = [...studioImages, ...studioImages];
 
-  const recentWorks = [
-    { id: 1, src: "https://picsum.photos/500/500?random=21", category: "Realism", title: "Lion Portrait", artist: "Romark" },
-    { id: 2, src: "https://picsum.photos/500/500?random=22", category: "Blackwork", title: "Geometric Sleeve", artist: "Viper" },
-    { id: 3, src: "https://picsum.photos/500/500?random=23", category: "Japanese", title: "Dragon Koi", artist: "Kenji" },
-    { id: 4, src: "https://picsum.photos/500/500?random=24", category: "Fine Line", title: "Floral Wreath", artist: "Sarah" },
-    { id: 5, src: "https://picsum.photos/500/500?random=25", category: "Traditional", title: "Eagle Chest", artist: "Romark" },
-    { id: 6, src: "https://picsum.photos/500/500?random=26", category: "Realism", title: "Greek Statue", artist: "Viper" },
-    { id: 7, src: "https://picsum.photos/500/500?random=27", category: "Watercolor", title: "Abstract Splash", artist: "Sarah" },
-    { id: 8, src: "https://picsum.photos/500/500?random=28", category: "Neo Trad", title: "Wolf Head", artist: "Kenji" },
+  const FALLBACK_WORKS = [
+    { id: '1', src: "https://picsum.photos/500/500?random=21", category: "Realism", title: "Lion Portrait", artist: "Romark" },
+    { id: '2', src: "https://picsum.photos/500/500?random=22", category: "Blackwork", title: "Geometric Sleeve", artist: "Viper" },
+    { id: '3', src: "https://picsum.photos/500/500?random=23", category: "Japanese", title: "Dragon Koi", artist: "Kenji" },
+    { id: '4', src: "https://picsum.photos/500/500?random=24", category: "Fine Line", title: "Floral Wreath", artist: "Sarah" },
+    { id: '5', src: "https://picsum.photos/500/500?random=25", category: "Traditional", title: "Eagle Chest", artist: "Romark" },
+    { id: '6', src: "https://picsum.photos/500/500?random=26", category: "Realism", title: "Greek Statue", artist: "Viper" },
+    { id: '7', src: "https://picsum.photos/500/500?random=27", category: "Watercolor", title: "Abstract Splash", artist: "Sarah" },
+    { id: '8', src: "https://picsum.photos/500/500?random=28", category: "Neo Trad", title: "Wolf Head", artist: "Kenji" },
   ];
 
-  const piercingTypes = [
+  const [recentWorks, setRecentWorks] = useState(FALLBACK_WORKS);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from('portfolio_images')
+      .select('id, src, title, category, artist')
+      .order('created_at', { ascending: false })
+      .limit(8)
+      .then(({ data }) => {
+        if (data && data.length > 0)
+          setRecentWorks(data.map(r => ({ id: r.id, src: r.src, title: r.title, category: r.category, artist: r.artist ?? '' })));
+      });
+  }, []);
+
+  const FALLBACK_PIERCINGS = [
     { name: 'Earlobe', img: 'https://picsum.photos/300/300?random=101' },
     { name: 'Conch', img: 'https://picsum.photos/300/300?random=102' },
     { name: 'Rook', img: 'https://picsum.photos/300/300?random=103' },
@@ -53,6 +78,20 @@ const Home: React.FC = () => {
     { name: 'Nipple', img: 'https://picsum.photos/300/300?random=119' },
     { name: 'Christina', img: 'https://picsum.photos/300/300?random=120' },
   ];
+
+  const [piercingTypes, setPiercingTypes] = useState(FALLBACK_PIERCINGS);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase
+      .from('piercing_images')
+      .select('src, name')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => {
+        if (data && data.length > 0)
+          setPiercingTypes(data.map(r => ({ name: r.name ?? '', img: r.src })));
+      });
+  }, []);
 
   const features = [
     {
@@ -76,6 +115,7 @@ const Home: React.FC = () => {
   ];
 
   const [selectedPiercing, setSelectedPiercing] = useState<number | null>(null);
+  const [carouselPaused, setCarouselPaused] = useState(false);
 
   const closeLightbox = useCallback(() => {
     setSelectedPiercing(null);
@@ -338,9 +378,14 @@ const Home: React.FC = () => {
       <section
         ref={featuresSec.ref}
         className="relative border-y border-white/5 overflow-hidden z-10"
-        style={{ backgroundImage: 'url("https://images.unsplash.com/photo-1590247813693-5541d1c609fd?auto=format&fit=crop&q=80")', backgroundAttachment: 'fixed', backgroundSize: 'cover', backgroundPosition: 'center' }}
+        style={{ backgroundImage: 'url("/images/bg.jpg")', backgroundAttachment: 'fixed', backgroundSize: 'cover', backgroundPosition: 'center' }}
       >
-        <div className="absolute inset-0 bg-ink-950/92" />
+        {/* Deep dark base */}
+        <div className="absolute inset-0 bg-ink-950/80" />
+        {/* Gold warm tint blended over */}
+        <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, rgba(212,175,55,0.08) 0%, transparent 50%, rgba(10,10,10,0.6) 100%)' }} />
+        {/* Vignette edges */}
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at center, transparent 40%, rgba(10,10,10,0.75) 100%)' }} />
 
         <div className="relative z-10 max-w-7xl mx-auto">
           {/* Section label */}
@@ -405,7 +450,12 @@ const Home: React.FC = () => {
         </div>
 
         <div className={`w-full ${studio.isVisible ? 'anim-fade-scale' : 'scroll-hidden'}`}>
-          <div className="flex w-max animate-scroll-slow hover:[animation-play-state:paused]">
+          <div
+            className="flex w-max animate-scroll-slow"
+            style={{ animationPlayState: carouselPaused ? 'paused' : 'running' }}
+            onMouseEnter={() => setCarouselPaused(true)}
+            onMouseLeave={() => setCarouselPaused(false)}
+          >
             {carouselImages.map((src, index) => (
               <div key={index} className="w-[260px] md:w-[360px] aspect-[3/4] relative mx-3 overflow-hidden group flex-shrink-0">
                 <img
@@ -561,7 +611,7 @@ const Home: React.FC = () => {
               <div className="absolute inset-0 bg-gradient-to-tr from-ink-accent/15 to-transparent rounded-2xl rotate-2 scale-105 opacity-60 group-hover:rotate-1 transition-transform duration-700" />
               <div className="relative h-[500px] md:h-[600px] w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10">
                 <img
-                  src="https://picsum.photos/600/800?random=50"
+                  src="/images/charles1.png"
                   alt="Professional Piercing"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                 />

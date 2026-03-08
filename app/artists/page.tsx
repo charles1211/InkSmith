@@ -175,8 +175,9 @@ const Artists = async () => {
                         </li>
                       ))}
                     </ul>
-                  ) : (
-                    <p className="text-gray-300 text-lg font-light leading-relaxed">{artist.bio}</p>
+                  ) : null}
+                  {artist.bio && (
+                    <p className="text-gray-500 text-sm font-light leading-relaxed">{artist.bio}</p>
                   )}
 
                   {/* Actions */}
