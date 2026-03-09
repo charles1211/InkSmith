@@ -28,12 +28,17 @@ const Portfolio: React.FC = () => {
   const loadImages = useCallback(async () => {
     setFetchError(null);
     setIsLoaded(false);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 10_000);
+
     try {
       const supabase = createClient();
       const { data, error } = await supabase
         .from('portfolio_images')
         .select('*')
-        .order('created_at', { ascending: false });
+        .order('created_at', { ascending: false })
+        .abortSignal(controller.signal);
       if (error) throw new Error(error.message);
       const mapped: PortfolioItem[] = (data ?? []).map((r) => ({
         id: r.id, src: r.src, title: r.title, category: r.category, artist: r.artist ?? '',
@@ -41,8 +46,10 @@ const Portfolio: React.FC = () => {
       setItems(mapped);
       setArtists([...new Set(mapped.map((i) => i.artist).filter(Boolean))]);
     } catch (err) {
-      setFetchError(err instanceof Error ? err.message : 'Failed to load images.');
+      const msg = err instanceof Error ? err.message : 'Failed to load images.';
+      setFetchError(err instanceof Error && err.name === 'AbortError' ? 'Request timed out. Please try again.' : msg);
     } finally {
+      clearTimeout(timeout);
       setTimeout(() => setIsLoaded(true), 80);
     }
   }, []);
