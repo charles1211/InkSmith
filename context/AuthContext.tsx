@@ -74,23 +74,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [supabase]);
 
   useEffect(() => {
-    // 1. Get the current session on mount.
-    supabase.auth.getUser()
-      .then(async ({ data: { user: supabaseUser } }) => {
-        if (supabaseUser) {
-          const profile = await fetchUserProfile(supabaseUser);
-          setUser(profile);
-        }
-      })
-      .catch(() => {
-        // Supabase unreachable — treat as logged out.
-      })
-      .finally(() => {
-        setIsLoading(false);
-      });
-
-    // 2. Subscribe to future auth changes (sign-in, sign-out, token refresh).
-    //    This fires for Google OAuth redirect sessions via SIGNED_IN event.
+    // onAuthStateChange fires immediately with INITIAL_SESSION on subscribe,
+    // giving us the current session from local storage without a network round-trip.
+    // This is the single source of truth — no separate getUser() call needed,
+    // which eliminates the race condition where getUser() could resolve first
+    // with no user (network error / slow response) and set isLoading=false early.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (_event, session) => {
         if (session?.user) {
@@ -98,8 +86,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             const profile = await fetchUserProfile(session.user);
             setUser(profile);
           } catch {
-            // fetchUserProfile should never throw (it has its own fallback),
-            // but guard defensively so user is not left null on error.
             const u = session.user;
             const email = u.email || '';
             const meta = u.user_metadata || {};
