@@ -1,27 +1,36 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
-import { PenTool, Mail, Lock, ArrowRight, AlertCircle, Loader2 } from 'lucide-react';
+import { PenTool, Mail, Lock, ArrowRight, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
-  const { login, signInWithGoogle, isLoading } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { login, signInWithGoogle, user } = useAuth();
   const router = useRouter();
+
+  // Navigate once onAuthStateChange has set the user in context.
+  useEffect(() => {
+    if (user) router.push('/');
+  }, [user, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    
+    setIsSubmitting(true);
     try {
       await login(email, password);
-      router.push('/'); // Redirect to home on success
+      // Navigation handled by the useEffect above once user is set.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid email or password.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -78,22 +87,29 @@ const Login: React.FC = () => {
               <div className="relative group">
                 <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-500 group-focus-within:text-ink-accent transition-colors" />
                 <input
-                  type="password"
+                  type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-ink-950/50 border border-white/10 rounded-lg py-3 pl-12 pr-4 text-white focus:border-ink-accent outline-none transition-all placeholder-gray-600"
+                  className="w-full bg-ink-950/50 border border-white/10 rounded-lg py-3 pl-12 pr-10 text-white focus:border-ink-accent outline-none transition-all placeholder-gray-600"
                   placeholder="••••••••"
                   required
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 hover:text-ink-accent transition-colors"
+                >
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
               </div>
             </div>
 
             <button
               type="submit"
-              disabled={isLoading}
+              disabled={isSubmitting}
               className="w-full py-4 bg-ink-accent text-ink-950 font-black uppercase tracking-widest rounded-lg hover:bg-white transition-all duration-300 flex items-center justify-center gap-2 group disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isLoading ? (
+              {isSubmitting ? (
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
@@ -107,7 +123,7 @@ const Login: React.FC = () => {
             <p className="text-center text-xs text-gray-500 uppercase tracking-widest mb-4">Or continue with</p>
             <button
               onClick={() => signInWithGoogle().catch((err: Error) => setError(err.message))}
-              disabled={isLoading}
+              disabled={isSubmitting}
               className="w-full py-3 bg-white/5 border border-white/10 text-white font-bold rounded-lg hover:bg-white/10 transition-all duration-300 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg className="w-5 h-5" viewBox="0 0 24 24">

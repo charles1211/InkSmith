@@ -20,7 +20,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -107,27 +107,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [supabase, fetchUserProfile]);
 
   const login = async (email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) throw new Error(error.message);
-    } finally {
-      setIsLoading(false);
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) throw new Error(error.message);
+    // onAuthStateChange fires with SIGNED_IN and handles setUser + setIsLoading(false).
   };
 
   const signup = async (name: string, email: string, password: string) => {
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { data: { name } },
-      });
-      if (error) throw new Error(error.message);
-    } finally {
-      setIsLoading(false);
-    }
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: { data: { name } },
+    });
+    if (error) throw new Error(error.message);
+    // onAuthStateChange fires with SIGNED_IN and handles setUser + setIsLoading(false).
   };
 
   const signInWithGoogle = async () => {
@@ -142,7 +134,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     await supabase.auth.signOut();
-    setUser(null);
+    // onAuthStateChange fires with SIGNED_OUT and calls setUser(null).
   };
 
   return (

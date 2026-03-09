@@ -16,7 +16,6 @@ const Navbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
-  const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -47,12 +46,11 @@ const Navbar: React.FC = () => {
   // Close menu on route change
   useEffect(() => {
     setIsOpen(false);
-    setDropdownOpen(null);
     setUserMenuOpen(false);
   }, [pathname]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.push('/');
   };
 
@@ -110,8 +108,6 @@ const Navbar: React.FC = () => {
                   <div
                     key={link.name}
                     className="relative group/dropdown"
-                    onMouseEnter={() => setDropdownOpen(link.name)}
-                    onMouseLeave={() => setDropdownOpen(null)}
                   >
                     <Link
                       href={link.path}
