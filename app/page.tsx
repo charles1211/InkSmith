@@ -9,39 +9,22 @@ import {
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { createClient } from '../lib/supabase/client';
 
-const FALLBACK_STUDIO = [
-  "https://picsum.photos/600/1000?random=10",
-  "https://picsum.photos/600/1000?random=11",
-  "https://picsum.photos/600/1000?random=12",
-  "https://picsum.photos/600/1000?random=13",
-  "https://picsum.photos/600/1000?random=14",
-  "https://picsum.photos/600/1000?random=15",
-];
-
 const Home: React.FC = () => {
-  const [studioImages, setStudioImages] = useState<string[]>(FALLBACK_STUDIO);
+  const [studioImages, setStudioImages] = useState<string[]>([]);
+  const [studioLoading, setStudioLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
     supabase.from('studio_images').select('src').order('created_at', { ascending: false }).then(({ data }) => {
       if (data && data.length > 0) setStudioImages(data.map(r => r.src));
+      setStudioLoading(false);
     });
   }, []);
 
   const carouselImages = [...studioImages, ...studioImages];
 
-  const FALLBACK_WORKS = [
-    { id: '1', src: "https://picsum.photos/500/500?random=21", category: "Realism", title: "Lion Portrait", artist: "Romark" },
-    { id: '2', src: "https://picsum.photos/500/500?random=22", category: "Blackwork", title: "Geometric Sleeve", artist: "Viper" },
-    { id: '3', src: "https://picsum.photos/500/500?random=23", category: "Japanese", title: "Dragon Koi", artist: "Kenji" },
-    { id: '4', src: "https://picsum.photos/500/500?random=24", category: "Fine Line", title: "Floral Wreath", artist: "Sarah" },
-    { id: '5', src: "https://picsum.photos/500/500?random=25", category: "Traditional", title: "Eagle Chest", artist: "Romark" },
-    { id: '6', src: "https://picsum.photos/500/500?random=26", category: "Realism", title: "Greek Statue", artist: "Viper" },
-    { id: '7', src: "https://picsum.photos/500/500?random=27", category: "Watercolor", title: "Abstract Splash", artist: "Sarah" },
-    { id: '8', src: "https://picsum.photos/500/500?random=28", category: "Neo Trad", title: "Wolf Head", artist: "Kenji" },
-  ];
-
-  const [recentWorks, setRecentWorks] = useState(FALLBACK_WORKS);
+  const [recentWorks, setRecentWorks] = useState<{ id: string; src: string; category: string; title: string; artist: string }[]>([]);
+  const [worksLoading, setWorksLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
@@ -53,33 +36,12 @@ const Home: React.FC = () => {
       .then(({ data }) => {
         if (data && data.length > 0)
           setRecentWorks(data.map(r => ({ id: r.id, src: r.src, title: r.title, category: r.category, artist: r.artist ?? '' })));
+        setWorksLoading(false);
       });
   }, []);
 
-  const FALLBACK_PIERCINGS = [
-    { name: 'Earlobe', img: 'https://picsum.photos/300/300?random=101' },
-    { name: 'Conch', img: 'https://picsum.photos/300/300?random=102' },
-    { name: 'Rook', img: 'https://picsum.photos/300/300?random=103' },
-    { name: 'Tragus', img: 'https://picsum.photos/300/300?random=104' },
-    { name: 'Flat Tragus', img: 'https://picsum.photos/300/300?random=105' },
-    { name: 'Helix', img: 'https://picsum.photos/300/300?random=106' },
-    { name: 'Forward Helix', img: 'https://picsum.photos/300/300?random=107' },
-    { name: 'Industrial', img: 'https://picsum.photos/300/300?random=108' },
-    { name: 'Daith', img: 'https://picsum.photos/300/300?random=109' },
-    { name: 'Smiley', img: 'https://picsum.photos/300/300?random=110' },
-    { name: 'Tongue', img: 'https://picsum.photos/300/300?random=111' },
-    { name: 'Snake Bite', img: 'https://picsum.photos/300/300?random=112' },
-    { name: 'Snake Eye', img: 'https://picsum.photos/300/300?random=113' },
-    { name: 'Labret', img: 'https://picsum.photos/300/300?random=114' },
-    { name: 'Nose', img: 'https://picsum.photos/300/300?random=115' },
-    { name: 'Septum', img: 'https://picsum.photos/300/300?random=116' },
-    { name: 'Eyebrow', img: 'https://picsum.photos/300/300?random=117' },
-    { name: 'Dermal', img: 'https://picsum.photos/300/300?random=118' },
-    { name: 'Nipple', img: 'https://picsum.photos/300/300?random=119' },
-    { name: 'Christina', img: 'https://picsum.photos/300/300?random=120' },
-  ];
-
-  const [piercingTypes, setPiercingTypes] = useState(FALLBACK_PIERCINGS);
+  const [piercingTypes, setPiercingTypes] = useState<{ name: string; img: string }[]>([]);
+  const [piercingLoading, setPiercingLoading] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
@@ -90,6 +52,7 @@ const Home: React.FC = () => {
       .then(({ data }) => {
         if (data && data.length > 0)
           setPiercingTypes(data.map(r => ({ name: r.name ?? '', img: r.src })));
+        setPiercingLoading(false);
       });
   }, []);
 
@@ -428,7 +391,7 @@ const Home: React.FC = () => {
       {/* ─────────────────────────────────────────────
           4. STUDIO SHOWCASE
       ───────────────────────────────────────────── */}
-      <section ref={studio.ref} className="py-28 overflow-hidden bg-ink-950/90 relative z-10">
+      {(studioLoading || studioImages.length > 0) && <section ref={studio.ref} className="py-28 overflow-hidden bg-ink-950/90 relative z-10">
         <div className={`max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-14 ${studio.isVisible ? 'anim-curtain-left' : 'scroll-hidden'}`}>
           <div className="flex flex-col md:flex-row items-start md:items-end justify-between gap-6">
             <div>
@@ -449,30 +412,37 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        <div className={`w-full ${studio.isVisible ? 'anim-fade-scale' : 'scroll-hidden'}`}>
-          <div
-            className="flex w-max animate-scroll-slow"
-            style={{ animationPlayState: carouselPaused ? 'paused' : 'running' }}
-            onMouseEnter={() => setCarouselPaused(true)}
-            onMouseLeave={() => setCarouselPaused(false)}
-          >
-            {carouselImages.map((src, index) => (
-              <div key={index} className="w-[260px] md:w-[360px] aspect-[3/4] relative mx-3 overflow-hidden group flex-shrink-0">
-                <img
-                  src={src}
-                  alt="Studio Interior"
-                  className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105 brightness-50 group-hover:brightness-90"
-                />
-                <div className="absolute inset-0 border border-white/8 pointer-events-none" />
-                {/* Pause hint */}
-                <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                  <span className="text-[10px] text-white/60 uppercase tracking-widest font-bold bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-sm">Paused</span>
-                </div>
-              </div>
+        {studioLoading ? (
+          <div className="flex gap-6 px-4 overflow-hidden">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="w-[260px] md:w-[360px] aspect-[3/4] flex-shrink-0 bg-ink-900/60 border border-white/4 animate-pulse" style={{ animationDelay: `${i * 0.1}s` }} />
             ))}
           </div>
-        </div>
-      </section>
+        ) : (
+          <div className={`w-full ${studio.isVisible ? 'anim-fade-scale' : 'scroll-hidden'}`}>
+            <div
+              className="flex w-max animate-scroll-slow"
+              style={{ animationPlayState: carouselPaused ? 'paused' : 'running' }}
+              onMouseEnter={() => setCarouselPaused(true)}
+              onMouseLeave={() => setCarouselPaused(false)}
+            >
+              {carouselImages.map((src, index) => (
+                <div key={index} className="w-[260px] md:w-[360px] aspect-[3/4] relative mx-3 overflow-hidden group flex-shrink-0">
+                  <img
+                    src={src}
+                    alt="Studio Interior"
+                    className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105 brightness-50 group-hover:brightness-90"
+                  />
+                  <div className="absolute inset-0 border border-white/8 pointer-events-none" />
+                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <span className="text-[10px] text-white/60 uppercase tracking-widest font-bold bg-black/40 px-3 py-1.5 rounded-full backdrop-blur-sm">Paused</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>}
 
       {/* ─────────────────────────────────────────────
           5. TATTOO GALLERY
@@ -504,7 +474,13 @@ const Home: React.FC = () => {
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+          {worksLoading ? (
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <div key={i} className="aspect-square bg-ink-900/60 border border-white/4 animate-pulse" style={{ animationDelay: `${i * 0.06}s` }} />
+              ))}
+            </div>
+          ) : recentWorks.length > 0 && <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-3">
             {recentWorks.map((work, idx) => (
               <div
                 key={work.id}
@@ -531,7 +507,7 @@ const Home: React.FC = () => {
                 </div>
               </div>
             ))}
-          </div>
+          </div>}
 
           {/* CTA */}
           <div
@@ -637,7 +613,16 @@ const Home: React.FC = () => {
           </div>
 
           {/* Piercing Grid */}
-          <div>
+          {piercingLoading ? (
+            <div>
+              <div className="h-4 w-72 mx-auto bg-white/[0.04] rounded-full animate-pulse mb-10" />
+              <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4">
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <div key={i} className="aspect-[4/5] rounded-xl bg-ink-900/60 border border-white/4 animate-pulse" style={{ animationDelay: `${i * 0.05}s` }} />
+                ))}
+              </div>
+            </div>
+          ) : piercingTypes.length > 0 && <div>
             <p className={`text-center text-gray-500 text-sm mb-10 ${piercing.isVisible ? 'anim-cascade' : 'scroll-hidden'}`} style={piercing.isVisible ? { animationDelay: '0.3s' } : undefined}>
               Explore our most popular placements — click any to view full screen
             </p>
@@ -669,7 +654,7 @@ const Home: React.FC = () => {
                 </div>
               ))}
             </div>
-          </div>
+          </div>}
         </div>
       </section>
 
