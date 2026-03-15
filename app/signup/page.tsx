@@ -5,8 +5,10 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { PenTool, Mail, Lock, User, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
+import { useRecaptcha } from '../../hooks/useRecaptcha';
 
 const SignUp: React.FC = () => {
+  const { executeRecaptcha } = useRecaptcha();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -25,8 +27,18 @@ const SignUp: React.FC = () => {
     setError('');
     setIsSubmitting(true);
     try {
-      await signup(name, email, password);
+      const recaptchaToken = await executeRecaptcha('signup');
+      const res = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, recaptchaToken }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to create account.');
+
+      // Account created — sign in via AuthContext (captcha already verified above)
       await login(email, password);
+      // Navigation handled by the useEffect above once user is set.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to create account.');
     } finally {
