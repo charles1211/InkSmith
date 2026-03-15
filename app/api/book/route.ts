@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import nodemailer from 'nodemailer';
+import { verifyRecaptcha } from '../../../lib/recaptcha';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -162,8 +163,16 @@ export async function POST(req: NextRequest) {
     firstName, lastName, email, phone, ageVerification,
     services, tattooStyle, tattooStyleOther, piercingPlacement,
     piercingPlacementOther, artistId, artistName, description,
-    preferredDate, referenceUrl,
+    preferredDate, referenceUrl, recaptchaToken,
   } = body;
+
+  const { success } = await verifyRecaptcha(recaptchaToken, 'booking');
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Security check failed. Please refresh and try again.' },
+      { status: 403 }
+    );
+  }
 
   // ── Save to Supabase (using service role to bypass RLS) ──────────────────
   const supabase = createServerClient(
