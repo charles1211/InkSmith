@@ -25,6 +25,9 @@ export async function verifyRecaptcha(
 
     const data = await res.json();
 
+    // Temporary debug log — remove before final deploy
+    console.log('[reCAPTCHA verify]', JSON.stringify(data));
+
     // Validate score AND action to prevent token reuse across forms
     const actionMatch = data.action === expectedAction;
     const scorePass = typeof data.score === 'number' && data.score >= 0.5;

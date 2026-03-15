@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git -C \"C:\\\\CharlesBackUp\\\\Projects Samples\\\\InkSmith\" log --oneline -10)",
+      "Bash(node -e \"const p = require\\(''./package.json''\\); console.log\\(p.dependencies[''server-only''] || ''NOT INSTALLED''\\)\")",
+      "Bash(powershell -Command \"Remove-Item -Path ''.next'' -Recurse -Force -ErrorAction SilentlyContinue; exit 0\")",
+      "Bash(npx tsc:*)",
+      "Bash(pkill -f \"next build\")",
+      "Read(//c/CharlesBackUp/Projects Samples/InkSmith/**)",
+      "Bash(wait)",
+      "Bash(npm run:*)"
+    ],
+    "additionalDirectories": [
+      "c:\\CharlesBackUp\\Projects Samples\\InkSmith\\docs\\superpowers"
+    ]
+  }
+}
