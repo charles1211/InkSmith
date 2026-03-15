@@ -723,6 +723,13 @@ const Booking: React.FC = () => {
                 ) : 'Confirm Booking'}
                 </button>
               </div>
+              <p className="text-center text-xs text-gray-600 leading-relaxed">
+                This site is protected by reCAPTCHA and the Google{' '}
+                <a href="https://policies.google.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-500">Privacy Policy</a>
+                {' '}and{' '}
+                <a href="https://policies.google.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-gray-500">Terms of Service</a>
+                {' '}apply.
+              </p>
             </div>
           </div>
         </Modal>

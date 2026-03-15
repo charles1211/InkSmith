@@ -235,3 +235,8 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #525252;
 }
+
+/* Hide reCAPTCHA v3 badge — legal text shown near each form's submit button instead */
+.grecaptcha-badge {
+  visibility: hidden;
+}
