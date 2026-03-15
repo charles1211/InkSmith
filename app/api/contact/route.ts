@@ -1,8 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { verifyRecaptcha } from '../../../lib/recaptcha';
 
 export async function POST(req: NextRequest) {
-  const { name, email, subject, message } = await req.json();
+  const { name, email, subject, message, recaptchaToken } = await req.json();
+
+  // Verify captcha first — before any further processing
+  const { success } = await verifyRecaptcha(recaptchaToken, 'contact');
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Security check failed. Please refresh and try again.' },
+      { status: 403 }
+    );
+  }
 
   if (!name || !email || !subject || !message) {
     return NextResponse.json({ error: 'All fields are required.' }, { status: 400 });
