@@ -9,13 +9,16 @@ declare global {
   }
 }
 
-// Module-level constants — env vars are inlined at build time by Next.js.
-const SITE_KEY = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!;
-
 // Module-level promise so the script is only injected once across all hook calls.
 let scriptLoadPromise: Promise<void> | null = null;
 
 function loadRecaptchaScript(): Promise<void> {
+  // Read key lazily so a missing env var is caught at execute time, not module load.
+  const siteKey = process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY;
+  if (!siteKey) {
+    return Promise.reject(new Error('NEXT_PUBLIC_RECAPTCHA_SITE_KEY is not set'));
+  }
+
   if (scriptLoadPromise) return scriptLoadPromise;
 
   scriptLoadPromise = new Promise((resolve, reject) => {
@@ -36,7 +39,7 @@ function loadRecaptchaScript(): Promise<void> {
     }
 
     const script = document.createElement('script');
-    script.src = `https://www.google.com/recaptcha/api.js?render=${SITE_KEY}`;
+    script.src = `https://www.google.com/recaptcha/api.js?render=${siteKey}`;
     script.dataset.recaptcha = 'true';
     script.async = true;
     script.onload = () => resolve();
@@ -55,13 +58,13 @@ export function useRecaptcha() {
       return new Promise((resolve, reject) => {
         window.grecaptcha.ready(() => {
           window.grecaptcha
-            .execute(SITE_KEY, { action })
+            .execute(process.env.NEXT_PUBLIC_RECAPTCHA_SITE_KEY!, { action })
             .then(resolve)
             .catch(reject);
         });
       });
     },
-    [] // SITE_KEY is module-level constant, not a dependency
+    []
   );
 
   return { executeRecaptcha };
