@@ -2,8 +2,10 @@
 
 import { useState } from 'react';
 import { Phone, MapPin, Send, ExternalLink, Clock, Instagram, Facebook, CheckCircle2 } from 'lucide-react';
+import { useRecaptcha } from '../../hooks/useRecaptcha';
 
 const Contact = () => {
+  const { executeRecaptcha } = useRecaptcha();
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -24,10 +26,11 @@ const Contact = () => {
     setLoading(true);
     setError(null);
     try {
+      const recaptchaToken = await executeRecaptcha('contact');
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({ ...formData, recaptchaToken }),
       });
       if (!res.ok) throw new Error('Failed to send message.');
       setSubmitted(true);
