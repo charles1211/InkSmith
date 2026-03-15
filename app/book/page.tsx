@@ -29,6 +29,7 @@ import {
   Zap,
   ImageIcon,
 } from 'lucide-react';
+import { useRecaptcha } from '../../hooks/useRecaptcha';
 
 const STEPS = [
   { id: 1, label: 'Personal', icon: User },
@@ -73,8 +74,10 @@ const Field = ({ label, optional, error, children }: { label: string; optional?:
 const Booking: React.FC = () => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { executeRecaptcha } = useRecaptcha();
 
   const [currentStep, setCurrentStep] = useState(1);
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [artists, setArtists] = useState<{ id: string; name: string }[]>([]);
   const [showReview, setShowReview] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
@@ -183,7 +186,9 @@ const Booking: React.FC = () => {
 
   const handleFinalSubmit = async () => {
     setLoading(true);
+    setSubmitError(null);
     try {
+      const recaptchaToken = await executeRecaptcha('booking');
       let referenceUrl: string | null = null;
       if (formData.referenceFile) {
         const supabase = createClient();
@@ -209,6 +214,7 @@ const Booking: React.FC = () => {
           piercingPlacement: formData.piercingPlacement, piercingPlacementOther: formData.piercingPlacementOther,
           artistId: formData.artistId, artistName: getArtistName(formData.artistId),
           description: formData.description, preferredDate: formData.preferredDate, referenceUrl,
+          recaptchaToken,
         }),
       });
 
@@ -220,8 +226,7 @@ const Booking: React.FC = () => {
       setShowReview(false);
       setShowConfirmation(true);
     } catch (err) {
-      console.error('Booking error:', err);
-      alert('Something went wrong submitting your booking. Please try again.');
+      setSubmitError(err instanceof Error ? err.message : 'Something went wrong. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -691,16 +696,22 @@ const Booking: React.FC = () => {
               )}
             </div>
 
-            <div className="p-5 border-t border-white/5 flex gap-3">
-              <button
-                onClick={() => setShowReview(false)}
-                disabled={loading}
-                className="px-5 py-3 border border-white/10 hover:bg-white/5 text-gray-400 hover:text-white font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all"
-              >
-                Edit
-              </button>
-              <button
-                onClick={handleFinalSubmit}
+            <div className="p-5 border-t border-white/5">
+              {submitError && (
+                <p className="text-red-400 text-sm text-center flex items-center justify-center gap-2 mb-4">
+                  <AlertCircle className="w-4 h-4 shrink-0" /> {submitError}
+                </p>
+              )}
+              <div className="flex gap-3">
+                <button
+                  onClick={() => setShowReview(false)}
+                  disabled={loading}
+                  className="px-5 py-3 border border-white/10 hover:bg-white/5 text-gray-400 hover:text-white font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all"
+                >
+                  Edit
+                </button>
+                <button
+                  onClick={handleFinalSubmit}
                 disabled={loading}
                 className="flex-1 py-3 bg-ink-accent hover:bg-yellow-400 disabled:opacity-60 text-black font-bold uppercase tracking-widest text-[10px] rounded-xl transition-all flex items-center justify-center gap-2"
               >
@@ -710,7 +721,8 @@ const Booking: React.FC = () => {
                     Processing...
                   </span>
                 ) : 'Confirm Booking'}
-              </button>
+                </button>
+              </div>
             </div>
           </div>
         </Modal>
