@@ -5,8 +5,11 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '../../context/AuthContext';
 import { PenTool, Mail, Lock, ArrowRight, AlertCircle, Loader2, Eye, EyeOff } from 'lucide-react';
+import { useRecaptcha } from '../../hooks/useRecaptcha';
+import { createClient } from '../../lib/supabase/client';
 
 const Login: React.FC = () => {
+  const { executeRecaptcha } = useRecaptcha();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -25,7 +28,21 @@ const Login: React.FC = () => {
     setError('');
     setIsSubmitting(true);
     try {
-      await login(email, password);
+      const recaptchaToken = await executeRecaptcha('login');
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, recaptchaToken }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Invalid email or password.');
+
+      // Establish client-side session — triggers onAuthStateChange in AuthContext
+      const supabase = createClient();
+      await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
       // Navigation handled by the useEffect above once user is set.
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid email or password.');
