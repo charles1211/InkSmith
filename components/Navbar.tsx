@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { Menu, X, PenTool, ArrowRight, ChevronDown, User, LogOut, LayoutDashboard, BookOpen } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
@@ -18,7 +18,6 @@ const Navbar: React.FC = () => {
   const [scrollProgress, setScrollProgress] = useState(0);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const pathname = usePathname();
-  const router = useRouter();
   const { user, logout } = useAuth();
 
   // Handle scroll effect + progress bar
@@ -51,7 +50,7 @@ const Navbar: React.FC = () => {
 
   const handleLogout = async () => {
     await logout();
-    router.push('/');
+    window.location.href = '/';
   };
 
   const navLinks: NavItem[] = [

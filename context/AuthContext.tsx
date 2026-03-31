@@ -19,7 +19,6 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<void>;
   signup: (name: string, email: string, password: string) => Promise<void>;
-  signInWithGoogle: () => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -60,9 +59,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // Fall through to the metadata fallback below.
     }
 
-    // Fallback: build user from Supabase auth metadata.
-    // Covers new Google OAuth users with no row in the users table yet,
-    // and any case where the DB query fails.
+    // Fallback: build user from Supabase auth metadata when DB query fails.
     const email = supabaseUser.email || '';
     const metadata = supabaseUser.user_metadata || {};
     return {
@@ -122,23 +119,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // onAuthStateChange fires with SIGNED_IN and handles setUser + setIsLoading(false).
   };
 
-  const signInWithGoogle = async () => {
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
-    if (error) throw new Error(error.message);
-  };
-
   const logout = async () => {
     await supabase.auth.signOut();
     // onAuthStateChange fires with SIGNED_OUT and calls setUser(null).
   };
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, signup, signInWithGoogle, logout }}>
+    <AuthContext.Provider value={{ user, isAuthenticated: !!user, isLoading, login, signup, logout }}>
       {children}
     </AuthContext.Provider>
   );

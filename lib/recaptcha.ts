@@ -10,6 +10,11 @@ export async function verifyRecaptcha(
 ): Promise<{ success: boolean; score: number }> {
   if (!token) return { success: false, score: 0 };
 
+  // Skip verification in local development
+  if (process.env.NODE_ENV === 'development') {
+    return { success: true, score: 1 };
+  }
+
   try {
     const params = new URLSearchParams({
       secret: process.env.RECAPTCHA_SECRET_KEY!,
