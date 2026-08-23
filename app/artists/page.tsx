@@ -6,7 +6,13 @@ import { createClient } from '../../lib/supabase/server';
 
 const Artists = async () => {
   const supabase = await createClient();
-  const { data } = await supabase.from('artists').select('*').order('created_at', { ascending: true });
+  const { data, error } = await supabase.from('artists').select('*').order('created_at', { ascending: true });
+
+  // A paused or unreachable database returns no rows, which is indistinguishable
+  // from an empty roster unless we keep the error around.
+  if (error) {
+    console.error('[artists] Supabase query failed:', error.message);
+  }
 
   const artists: Artist[] = (data ?? []).map(r => ({
     id: r.id,
@@ -80,12 +86,16 @@ const Artists = async () => {
               </div>
               <div className="absolute inset-0 rounded-full bg-ink-accent/5 blur-3xl -z-10" />
             </div>
-            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-ink-accent mb-5">Coming Soon</p>
+            <p className="text-[10px] font-black uppercase tracking-[0.35em] text-ink-accent mb-5">
+              {error ? 'Temporarily Offline' : 'Coming Soon'}
+            </p>
             <h2 className="text-4xl md:text-6xl font-serif font-black text-white uppercase tracking-tighter mb-5">
-              Artists Unavailable
+              {error ? 'Roster Unavailable' : 'Artists Unavailable'}
             </h2>
             <p className="max-w-md text-gray-500 font-light leading-relaxed mb-12">
-              Our roster is being curated. Check back soon to meet the talented artists joining InkSmith.
+              {error
+                ? "We couldn't reach our roster just now. Please refresh in a moment — booking is still open."
+                : 'Our roster is being curated. Check back soon to meet the talented artists joining InkSmith.'}
             </p>
             <Link
               href="/book"

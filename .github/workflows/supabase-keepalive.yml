@@ -1,0 +1,50 @@
+name: Supabase Keep-Alive
+
+# Supabase pauses Free plan projects after ~7 days of low database activity.
+# A few real database queries per day is enough to keep a project active, so
+# this hits PostgREST three times a day against the public `artists` table.
+#
+# Requires two repo secrets (Settings > Secrets and variables > Actions):
+#   SUPABASE_URL       https://dwdkulhjylnhoimtutdu.supabase.co
+#   SUPABASE_ANON_KEY  same value as NEXT_PUBLIC_SUPABASE_ANON_KEY
+#
+# Note: GitHub disables scheduled workflows on repos with 60 days of no commit
+# activity (it emails first). Re-enable from the Actions tab if that happens.
+
+on:
+  schedule:
+    # 00:00, 08:00 and 16:00 UTC. GitHub may delay cron runs under peak load.
+    - cron: '0 */8 * * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Query the artists table
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          set -euo pipefail
+
+          if [ -z "${SUPABASE_URL}" ] || [ -z "${SUPABASE_ANON_KEY}" ]; then
+            echo "::error::SUPABASE_URL and SUPABASE_ANON_KEY repo secrets are not set."
+            exit 1
+          fi
+
+          status=$(curl -sS --max-time 30 -o /tmp/keepalive-body.txt -w '%{http_code}' \
+            "${SUPABASE_URL}/rest/v1/artists?select=id&limit=1" \
+            -H "apikey: ${SUPABASE_ANON_KEY}" \
+            -H "Authorization: Bearer ${SUPABASE_ANON_KEY}")
+
+          echo "HTTP ${status}"
+          cat /tmp/keepalive-body.txt
+          echo
+
+          if [ "${status}" != "200" ]; then
+            echo "::error::Supabase keep-alive failed with HTTP ${status} — the project may be paused."
+            exit 1
+          fi
+
+          echo "Database reachable — pause timer reset."
