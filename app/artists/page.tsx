@@ -1,36 +1,84 @@
 import React from 'react';
 import Link from 'next/link';
-import { Artist } from '../../types';
+import type { Metadata } from 'next';
 import { Instagram, Calendar, ArrowRight, PenTool } from 'lucide-react';
-import { createClient } from '../../lib/supabase/server';
+
+import Breadcrumbs from '../../components/seo/Breadcrumbs';
+import JsonLd from '../../components/seo/JsonLd';
+import { faqsByTopic, toSchemaFaqs } from '../../content/faqs';
+import { getArtists } from '../../lib/data/public-content';
+import { buildMetadata } from '../../lib/seo/metadata';
+import { pageGraph, itemListSchema, personSchema, ID } from '../../lib/seo/schema';
+import { siteConfig } from '../../lib/seo/site.config';
+import { withUniqueSlugs } from '../../lib/seo/slug';
+
+/**
+ * The roster changes rarely, so this is generated statically and refreshed on a
+ * 15 minute cycle. That also self-heals the page if a build happened to run
+ * while the free-tier database was paused.
+ */
+export const revalidate = 900;
+
+const TITLE = 'Tattoo Artists in Hamilton, Bermuda';
+const DESCRIPTION =
+  'Meet the tattoo artists at InkSmith Studios in Hamilton, Bermuda. Each artist specialises in different styles, from hyper-realism to traditional Irezumi. Book directly.';
+
+export const metadata: Metadata = buildMetadata({
+  title: TITLE,
+  description: DESCRIPTION,
+  path: '/artists',
+});
+
+const CRUMBS = [
+  { name: 'Home', href: '/' },
+  { name: 'Artists', href: '/artists' },
+];
 
 const Artists = async () => {
-  const supabase = await createClient();
-  const { data, error } = await supabase.from('artists').select('*').order('created_at', { ascending: true });
-
-  // A paused or unreachable database returns no rows, which is indistinguishable
-  // from an empty roster unless we keep the error around.
-  if (error) {
-    console.error('[artists] Supabase query failed:', error.message);
-  }
-
-  const artists: Artist[] = (data ?? []).map(r => ({
-    id: r.id,
-    name: r.name,
-    specialties: r.specialties ?? [],
-    bio: r.bio ?? '',
-    imageUrl: r.image_url ?? '',
-    instagramHandle: r.instagram_handle ?? '',
-    highlights: r.highlights ?? [],
-  }));
+  // A paused or unreachable database is indistinguishable from an empty roster
+  // unless the failure flag is kept, so the reader returns both.
+  const { data: artists, failed: error } = await getArtists();
 
   const totalStyles = [...new Set(artists.flatMap(a => a.specialties))].length;
 
+  const artistNodes = withUniqueSlugs(artists).map(({ artist, slug }) =>
+    personSchema({
+      slug,
+      name: artist.name,
+      description: artist.bio || undefined,
+      image: artist.imageUrl || undefined,
+      jobTitle: 'Tattoo Artist',
+      knowsAbout: artist.specialties,
+      sameAs: artist.instagramHandle
+        ? [`https://instagram.com/${artist.instagramHandle.replace('@', '')}`]
+        : undefined,
+    })
+  );
+
   return (
     <div className="min-h-screen bg-ink-950 text-white">
+      <JsonLd
+        data={pageGraph({
+          path: '/artists',
+          name: TITLE,
+          description: DESCRIPTION,
+          pageType: 'CollectionPage',
+          crumbs: CRUMBS,
+          faqs: toSchemaFaqs(faqsByTopic('tattoo', 4)),
+          speakableSelectors: ['[data-answer]'],
+          extra: [
+            itemListSchema({
+              id: ID.itemList('/artists'),
+              name: `Artists at ${siteConfig.name}`,
+              items: artistNodes,
+            }),
+          ],
+        })}
+      />
+      <Breadcrumbs items={CRUMBS} />
 
       {/* ── Header ── */}
-      <div className="relative pt-36 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <div className="relative pt-12 pb-24 px-4 sm:px-6 lg:px-8 overflow-hidden">
         <div className="absolute top-0 left-1/4 w-[600px] h-[400px] bg-ink-accent/6 rounded-full blur-[160px] pointer-events-none" />
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-indigo-900/15 rounded-full blur-[120px] pointer-events-none" />
 
@@ -107,7 +155,7 @@ const Artists = async () => {
           </div>
         ) : (
           <div className="space-y-48">
-            {artists.map((artist, index) => (
+            {withUniqueSlugs(artists).map(({ artist, slug }, index) => (
               <article
                 key={artist.id}
                 className={`group relative flex flex-col lg:flex-row gap-16 xl:gap-24 items-start ${index % 2 === 1 ? 'lg:flex-row-reverse' : ''}`}
@@ -129,7 +177,11 @@ const Artists = async () => {
                       <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-ink-950/10 to-transparent z-10 group-hover:from-ink-950/40 transition-all duration-700" />
                       <img
                         src={artist.imageUrl}
-                        alt={artist.name}
+                        alt={`${artist.name}, tattoo artist at ${siteConfig.name}`}
+                        width={900}
+                        height={1200}
+                        loading={index === 0 ? 'eager' : 'lazy'}
+                        decoding="async"
                         className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                       />
 
@@ -169,7 +221,12 @@ const Artists = async () => {
 
                   {/* Name */}
                   <h2 className="text-5xl sm:text-6xl md:text-7xl font-black font-sans uppercase tracking-tighter text-white leading-none">
-                    {artist.name}
+                    <Link
+                      href={`/artists/${slug}`}
+                      className="hover:text-ink-accent transition-colors duration-300"
+                    >
+                      {artist.name}
+                    </Link>
                   </h2>
 
                   {/* Gradient divider */}
@@ -199,6 +256,13 @@ const Artists = async () => {
                       <Calendar className="w-4 h-4" />
                       Book {artist.name.split(' ')[0]}
                       <ArrowRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </Link>
+
+                    <Link
+                      href={`/artists/${slug}`}
+                      className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-xs font-bold uppercase tracking-widest border border-white/10 hover:border-white/30 px-5 py-4"
+                    >
+                      View {artist.name.split(' ')[0]}&rsquo;s profile
                     </Link>
 
                     <a
