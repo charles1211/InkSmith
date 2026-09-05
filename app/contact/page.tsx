@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { Phone, MapPin, Send, ExternalLink, Clock, Instagram, Facebook, CheckCircle2 } from 'lucide-react';
 import { useRecaptcha } from '../../hooks/useRecaptcha';
+import { siteConfig } from '../../lib/seo/site.config';
 
 const Contact = () => {
   const { executeRecaptcha } = useRecaptcha();
@@ -75,7 +76,7 @@ const Contact = () => {
       </div>
 
       {/* ── HERO HEADER ── */}
-      <div className="relative pt-32 pb-16 px-4 sm:px-6 lg:px-8">
+      <div className="relative pt-10 pb-16 px-4 sm:px-6 lg:px-8">
 
         {/* Ghost watermark */}
         <div className="absolute inset-0 flex items-center justify-center pointer-events-none overflow-hidden select-none">
@@ -205,7 +206,7 @@ const Contact = () => {
             {/* Social links */}
             <div className="flex gap-3 mt-8">
               <a
-                href="https://instagram.com/inksmithtattoobda"
+                href={siteConfig.social.instagram}
                 target="_blank"
                 rel="noreferrer"
                 className="group flex items-center gap-2.5 text-[9px] font-bold tracking-[0.3em] text-gray-600 hover:text-white transition-all duration-300"
@@ -215,15 +216,19 @@ const Contact = () => {
                 </div>
                 INSTAGRAM
               </a>
-              <a
-                href="#"
-                className="group flex items-center gap-2.5 text-[9px] font-bold tracking-[0.3em] text-gray-600 hover:text-white transition-all duration-300"
-              >
-                <div className="w-9 h-9 border border-white/[0.08] rounded-full flex items-center justify-center group-hover:border-ink-accent group-hover:bg-ink-accent/10 transition-all duration-300">
-                  <Facebook className="w-3.5 h-3.5" />
-                </div>
-                FACEBOOK
-              </a>
+              {siteConfig.social.facebook && (
+                <a
+                  href={siteConfig.social.facebook}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="group flex items-center gap-2.5 text-[9px] font-bold tracking-[0.3em] text-gray-600 hover:text-white transition-all duration-300"
+                >
+                  <div className="w-9 h-9 border border-white/[0.08] rounded-full flex items-center justify-center group-hover:border-ink-accent group-hover:bg-ink-accent/10 transition-all duration-300">
+                    <Facebook className="w-3.5 h-3.5" />
+                  </div>
+                  FACEBOOK
+                </a>
+              )}
             </div>
 
             {/* Map */}
@@ -296,7 +301,7 @@ const Contact = () => {
                   <p className="text-[9px] font-bold tracking-[0.35em] text-ink-accent uppercase">Confirmed</p>
                   <h3 className="font-serif font-black text-3xl text-white">Message Sent</h3>
                   <p className="text-gray-500 text-sm max-w-xs leading-relaxed">
-                    Thank you for reaching out. We've received your message and will respond within 24 hours.
+                    Thank you for reaching out. We've received your message and will respond within 24 to 48 hours.
                   </p>
                 </div>
                 <button
@@ -414,7 +419,7 @@ const Contact = () => {
 
                   {/* Reassurance note */}
                   <p className="text-center text-[9px] tracking-[0.25em] text-gray-700 mt-4 uppercase">
-                    We respond within <span className="text-ink-accent/70">24 hours</span>
+                    We respond within <span className="text-ink-accent/70">24&ndash;48 hours</span>
                   </p>
                   <p className="text-center text-xs text-gray-600 leading-relaxed mt-3">
                     This site is protected by reCAPTCHA and the Google{' '}

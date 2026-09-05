@@ -12,16 +12,25 @@ const CATEGORIES = ['All', 'Realism', 'Traditional', 'Japanese', 'Blackwork', 'F
 
 type PortfolioItem = { id: string; src: string; category: string; title: string; artist: string };
 
+interface PortfolioClientProps {
+  /** Server-fetched gallery, so the work is present in the initial HTML. */
+  initialItems: PortfolioItem[];
+  /** True when the server read failed; the client then retries in the browser. */
+  fetchFailed?: boolean;
+}
+
 /* ─── Component ─── */
-const Portfolio: React.FC = () => {
-  const [items, setItems] = useState<PortfolioItem[]>([]);
-  const [artists, setArtists] = useState<string[]>([]);
+const Portfolio: React.FC<PortfolioClientProps> = ({ initialItems, fetchFailed = false }) => {
+  const [items, setItems] = useState<PortfolioItem[]>(initialItems);
+  const [artists, setArtists] = useState<string[]>(() => [
+    ...new Set(initialItems.map((i) => i.artist).filter(Boolean)),
+  ]);
   const [search, setSearch] = useState('');
   const [type, setType] = useState('All');
   const [artist, setArtist] = useState('All');
   const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
   const [imgFading, setImgFading] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(!fetchFailed);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
   /* fetch */
@@ -54,10 +63,13 @@ const Portfolio: React.FC = () => {
     }
   }, []);
 
+  // The gallery now arrives from the server, so this fetch is only a fallback
+  // for the case where that read failed (a paused free-tier database, say).
+  // Visitors still get the full gallery; only the crawler snapshot is stale.
   useEffect(() => {
-    window.scrollTo(0, 0);
+    if (!fetchFailed) return;
     loadImages();
-  }, [loadImages]);
+  }, [fetchFailed, loadImages]);
 
   /* filter */
   const filtered = useMemo(() => items.filter((item) => {
@@ -131,7 +143,7 @@ const Portfolio: React.FC = () => {
     <div className="min-h-screen bg-ink-950 text-white selection:bg-ink-accent selection:text-black">
 
       {/* ═══ HERO HEADER ═══ */}
-      <header className="relative pt-32 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
+      <header className="relative pt-10 pb-20 px-4 sm:px-6 lg:px-8 overflow-hidden">
         {/* ambient glow */}
         <div
           className="absolute top-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] rounded-full pointer-events-none"
@@ -156,7 +168,6 @@ const Portfolio: React.FC = () => {
           {/* title */}
           <h1
             className="font-serif font-black uppercase leading-[0.92] tracking-tighter mb-6"
-            style={{ fontFamily: 'Cinzel, serif' }}
           >
             <span className="block text-white text-5xl md:text-7xl lg:text-[6rem]">Our</span>
             <span
@@ -350,8 +361,9 @@ const Portfolio: React.FC = () => {
                   {/* image */}
                   <img
                     src={item.src}
-                    alt={item.title}
+                    alt={[item.title, item.category && `${item.category} tattoo`, item.artist && `by ${item.artist}`].filter(Boolean).join(', ') || 'Tattoo by InkSmith Studios'}
                     loading="lazy"
+                    decoding="async"
                     className="w-full h-auto block transform transition-transform duration-700 ease-out group-hover:scale-[1.045]"
                   />
 
@@ -418,7 +430,6 @@ const Portfolio: React.FC = () => {
             <span className="text-ink-accent text-[9px] uppercase tracking-[0.35em] mb-5 block">Inspired by what you see?</span>
             <h2
               className="font-serif font-black uppercase leading-tight text-white mb-5 text-3xl md:text-4xl"
-              style={{ fontFamily: 'Cinzel, serif' }}
             >
               Make It Yours
             </h2>
@@ -487,7 +498,12 @@ const Portfolio: React.FC = () => {
             <img
               key={lightboxIdx}
               src={filtered[lightboxIdx].src}
-              alt={filtered[lightboxIdx].title}
+              alt={[
+                filtered[lightboxIdx].title,
+                filtered[lightboxIdx].category && `${filtered[lightboxIdx].category} tattoo`,
+                filtered[lightboxIdx].artist && `by ${filtered[lightboxIdx].artist}`,
+              ].filter(Boolean).join(', ') || 'Tattoo by InkSmith Studios'}
+              decoding="async"
               className="max-h-[72vh] max-w-full object-contain rounded-lg shadow-[0_24px_80px_rgba(0,0,0,0.8)]"
               style={{ opacity: imgFading ? 0 : 1, transform: imgFading ? 'scale(0.97)' : 'scale(1)', transition: 'opacity 0.12s ease, transform 0.12s ease' }}
             />

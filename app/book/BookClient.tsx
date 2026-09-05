@@ -1,9 +1,11 @@
 'use client';
 
-import React, { useState, useRef, useEffect } from 'react';
+import React, { Suspense, useCallback, useState, useRef, useEffect } from 'react';
+import ArtistParam from './ArtistParam';
 import { useRouter } from 'next/navigation';
 import { BookingFormData } from '../../types';
 import { createClient } from '../../lib/supabase/client';
+import { DEFAULT_COUNTRY, isValidPhone, normalisePhone } from '../../lib/phone';
 import {
   Upload,
   CheckCircle,
@@ -71,14 +73,24 @@ const Field = ({ label, optional, error, children }: { label: string; optional?:
   </div>
 );
 
-const Booking: React.FC = () => {
+interface BookClientProps {
+  /** Server-fetched roster, so the artist select is populated on first paint. */
+  initialArtists: { id: string; name: string }[];
+  /** True when the server read failed; the client then retries in the browser. */
+  artistsFetchFailed?: boolean;
+}
+
+const Booking: React.FC<BookClientProps> = ({
+  initialArtists,
+  artistsFetchFailed = false,
+}) => {
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { executeRecaptcha } = useRecaptcha();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [artists, setArtists] = useState<{ id: string; name: string }[]>([]);
+  const [artists, setArtists] = useState<{ id: string; name: string }[]>(initialArtists);
   const [showReview, setShowReview] = useState(false);
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -98,12 +110,29 @@ const Booking: React.FC = () => {
   };
   const [formData, setFormData] = useState<BookingFormData>(initialFormData);
 
+  // The roster arrives from the server; this only retries when that failed.
   useEffect(() => {
+    if (!artistsFetchFailed) return;
     const supabase = createClient();
     supabase.from('artists').select('id, name').order('name').then(({ data }) => {
       if (data) setArtists(data);
     });
+  }, [artistsFetchFailed]);
+
+  // Preselect the artist when arriving from an /artists card, which links to
+  // /book?artistId=<id>. That link previously went nowhere, because this page
+  // never read its search params. The id is validated against the roster so a
+  // stale or hand-edited link cannot put the form into an impossible state.
+  const [pendingArtistId, setPendingArtistId] = useState<string | null>(null);
+  const handleArtistParam = useCallback((artistId: string) => {
+    setPendingArtistId(artistId);
   }, []);
+
+  useEffect(() => {
+    if (!pendingArtistId) return;
+    if (!artists.some(a => a.id === pendingArtistId)) return;
+    setFormData(prev => (prev.artistId ? prev : { ...prev, artistId: pendingArtistId }));
+  }, [pendingArtistId, artists]);
 
   useEffect(() => { window.scrollTo(0, 0); }, []);
 
@@ -111,12 +140,6 @@ const Booking: React.FC = () => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     setErrors(curr => ({ ...curr, [name]: undefined }));
-  };
-
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const digits = e.target.value.replace(/\D/g, '').slice(0, 10);
-    setFormData(prev => ({ ...prev, phone: digits ? `+63${digits}` : '' }));
-    setErrors(curr => ({ ...curr, phone: undefined }));
   };
 
   const toggleService = (service: string) => {
@@ -148,9 +171,10 @@ const Booking: React.FC = () => {
       if (!formData.lastName.trim()) newErrors.lastName = 'Last name is required.';
       if (!formData.email.trim()) newErrors.email = 'Email address is required.';
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) newErrors.email = 'Please enter a valid email address.';
-      const phoneDigits = formData.phone.replace('+63', '');
-      if (!phoneDigits) newErrors.phone = 'Phone number is required.';
-      else if (phoneDigits.length < 10) newErrors.phone = 'Phone number must be 10 digits.';
+      if (!formData.phone.trim()) newErrors.phone = 'Phone number is required.';
+      else if (!isValidPhone(formData.phone)) {
+        newErrors.phone = `Enter a ${DEFAULT_COUNTRY.localDigits}-digit local number, or include your country code.`;
+      }
       if (!formData.ageVerification) newErrors.age = 'Please verify your age requirement.';
     }
     if (step === 2) {
@@ -208,7 +232,7 @@ const Booking: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           firstName: formData.firstName, lastName: formData.lastName,
-          email: formData.email, phone: formData.phone,
+          email: formData.email, phone: normalisePhone(formData.phone) ?? formData.phone,
           ageVerification: formData.ageVerification, services: formData.services,
           tattooStyle: formData.tattooStyle, tattooStyleOther: formData.tattooStyleOther,
           piercingPlacement: formData.piercingPlacement, piercingPlacementOther: formData.piercingPlacementOther,
@@ -248,7 +272,10 @@ const Booking: React.FC = () => {
   const progressPct = ((currentStep - 1) / (STEPS.length - 1)) * 100;
 
   return (
-    <div className="min-h-screen bg-ink-950 text-white pt-20 pb-24 relative selection:bg-ink-accent selection:text-black">
+    <div className="min-h-screen bg-ink-950 text-white pt-6 pb-24 relative selection:bg-ink-accent selection:text-black">
+      <Suspense fallback={null}>
+        <ArtistParam onResolve={handleArtistParam} />
+      </Suspense>
 
       {/* Background glows */}
       <div className="fixed inset-0 z-0 pointer-events-none overflow-hidden">
@@ -370,20 +397,20 @@ const Booking: React.FC = () => {
                   </Field>
 
                   <Field label="Phone Number" error={errors.phone}>
-                    <div className="flex">
-                      <span className="inline-flex items-center gap-1.5 px-3.5 bg-ink-900/80 border border-r-0 border-white/10 rounded-l-xl text-sm text-gray-300 font-bold whitespace-nowrap select-none">
-                        🇵🇭 +63
-                      </span>
+                    <div className="relative">
+                      <Smartphone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
                       <input
-                        type="tel"
-                        inputMode="numeric"
-                        value={formData.phone.startsWith('+63') ? formData.phone.slice(3) : formData.phone}
-                        onChange={handlePhoneChange}
-                        maxLength={10}
-                        className={`${inputBase} rounded-l-none border-l-0 flex-1 ${errors.phone ? 'border-red-500/50' : ''}`}
-                        placeholder="9XX XXX XXXX"
+                        type="tel" name="phone" inputMode="tel" value={formData.phone}
+                        onChange={handleInputChange}
+                        className={`${inputWithIcon} ${errors.phone ? 'border-red-500/50' : ''}`}
+                        placeholder={DEFAULT_COUNTRY.example}
                       />
                     </div>
+                    <p className="text-[11px] text-gray-600 mt-1.5">
+                      {DEFAULT_COUNTRY.flag} Local numbers need just the{' '}
+                      {DEFAULT_COUNTRY.localDigits} digits. Visiting? Include your
+                      country code, e.g. +44 7700 900123.
+                    </p>
                   </Field>
 
                   {/* Age Verification */}

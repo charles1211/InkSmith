@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   ArrowRight, Star, Sparkles, ShieldCheck, MapPin, Clock,
   ChevronRight, ChevronLeft, PenTool, X, ExternalLink,
@@ -9,24 +10,49 @@ import {
 import { useScrollAnimation } from '../hooks/useScrollAnimation';
 import { createClient } from '../lib/supabase/client';
 
-const Home: React.FC = () => {
-  const [studioImages, setStudioImages] = useState<string[]>([]);
-  const [studioLoading, setStudioLoading] = useState(true);
+interface HomeClientProps {
+  /** Server-fetched studio photos, so the marquee is in the initial HTML. */
+  initialStudioImages: string[];
+  initialRecentWorks: { id: string; src: string; category: string; title: string; artist: string }[];
+  initialPiercingTypes: { name: string; img: string }[];
+  /** Set when the matching server read failed, which re-enables the client fetch. */
+  studioFetchFailed?: boolean;
+  worksFetchFailed?: boolean;
+  piercingFetchFailed?: boolean;
+}
 
+const Home: React.FC<HomeClientProps> = ({
+  initialStudioImages,
+  initialRecentWorks,
+  initialPiercingTypes,
+  studioFetchFailed = false,
+  worksFetchFailed = false,
+  piercingFetchFailed = false,
+}) => {
+  const [studioImages, setStudioImages] = useState<string[]>(initialStudioImages);
+  const [studioLoading, setStudioLoading] = useState(studioFetchFailed);
+
+  // These three reads now happen on the server, so the studio, gallery and
+  // piercing content ship in the HTML rather than appearing after hydration —
+  // previously a crawler saw only skeleton placeholders here. The original
+  // browser fetch is kept as a fallback for when the server read failed (a
+  // paused free-tier database, say), so a visitor never sees an empty page.
   useEffect(() => {
+    if (!studioFetchFailed) return;
     const supabase = createClient();
     supabase.from('studio_images').select('src').order('created_at', { ascending: false }).then(({ data }) => {
       if (data && data.length > 0) setStudioImages(data.map(r => r.src));
       setStudioLoading(false);
     });
-  }, []);
+  }, [studioFetchFailed]);
 
   const carouselImages = [...studioImages, ...studioImages];
 
-  const [recentWorks, setRecentWorks] = useState<{ id: string; src: string; category: string; title: string; artist: string }[]>([]);
-  const [worksLoading, setWorksLoading] = useState(true);
+  const [recentWorks, setRecentWorks] = useState(initialRecentWorks);
+  const [worksLoading, setWorksLoading] = useState(worksFetchFailed);
 
   useEffect(() => {
+    if (!worksFetchFailed) return;
     const supabase = createClient();
     supabase
       .from('portfolio_images')
@@ -38,12 +64,13 @@ const Home: React.FC = () => {
           setRecentWorks(data.map(r => ({ id: r.id, src: r.src, title: r.title, category: r.category, artist: r.artist ?? '' })));
         setWorksLoading(false);
       });
-  }, []);
+  }, [worksFetchFailed]);
 
-  const [piercingTypes, setPiercingTypes] = useState<{ name: string; img: string }[]>([]);
-  const [piercingLoading, setPiercingLoading] = useState(true);
+  const [piercingTypes, setPiercingTypes] = useState(initialPiercingTypes);
+  const [piercingLoading, setPiercingLoading] = useState(piercingFetchFailed);
 
   useEffect(() => {
+    if (!piercingFetchFailed) return;
     const supabase = createClient();
     supabase
       .from('piercing_images')
@@ -54,7 +81,7 @@ const Home: React.FC = () => {
           setPiercingTypes(data.map(r => ({ name: r.name ?? '', img: r.src })));
         setPiercingLoading(false);
       });
-  }, []);
+  }, [piercingFetchFailed]);
 
   const features = [
     {
@@ -125,7 +152,7 @@ const Home: React.FC = () => {
       <div className="fixed inset-0 z-0 pointer-events-none">
         <div
           className="absolute inset-0 opacity-[0.07]"
-          style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/wall-4-light.png")`, backgroundRepeat: 'repeat' }}
+          style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E")`, backgroundRepeat: 'repeat' }}
         />
         <div
           className="absolute inset-0 bg-cover bg-center opacity-[0.15] mix-blend-soft-light"
@@ -144,7 +171,15 @@ const Home: React.FC = () => {
           1. HERO
       ───────────────────────────────────────────── */}
       <div className="relative h-screen flex items-end justify-center overflow-hidden z-10 pb-24 md:pb-32">
-        <div className="absolute inset-0 z-0 bg-cover bg-center bg-no-repeat" style={{ backgroundImage: 'url("/images/charles.png")', backgroundPosition: 'center top' }} />
+        <Image
+          src="/images/charles.webp"
+          alt=""
+          fill
+          priority
+          sizes="100vw"
+          quality={72}
+          className="object-cover object-top z-0"
+        />
         <div className="absolute inset-0 z-0 bg-ink-950/55" />
         <div className="absolute inset-0 z-0" style={{ background: 'linear-gradient(to bottom, rgba(10,10,10,0.7) 0%, transparent 40%, rgba(10,10,10,0.95) 100%)' }} />
 
@@ -166,6 +201,9 @@ const Home: React.FC = () => {
               Tattoo<br />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-ink-accent via-yellow-300 to-ink-accent/70">
                 &amp; Piercing
+              </span>
+              <span className="block mt-4 font-sans text-base sm:text-lg md:text-xl font-bold tracking-[0.2em] text-gray-400 normal-case">
+                in Hamilton, Bermuda
               </span>
             </h1>
 
@@ -341,8 +379,16 @@ const Home: React.FC = () => {
       <section
         ref={featuresSec.ref}
         className="relative border-y border-white/5 overflow-hidden z-10"
-        style={{ backgroundImage: 'url("/images/bg.jpg")', backgroundAttachment: 'fixed', backgroundSize: 'cover', backgroundPosition: 'center' }}
       >
+        <Image
+          src="/images/bg.webp"
+          alt=""
+          fill
+          loading="lazy"
+          sizes="100vw"
+          quality={65}
+          className="object-cover -z-10"
+        />
         {/* Deep dark base */}
         <div className="absolute inset-0 bg-ink-950/80" />
         {/* Gold warm tint blended over */}
@@ -430,7 +476,11 @@ const Home: React.FC = () => {
                 <div key={index} className="w-[260px] md:w-[360px] aspect-[3/4] relative mx-3 overflow-hidden group flex-shrink-0">
                   <img
                     src={src}
-                    alt="Studio Interior"
+                    alt={`Inside InkSmith Studios in Hamilton, Bermuda (${(index % studioImages.length) + 1})`}
+                    width={720}
+                    height={960}
+                    loading="lazy"
+                    decoding="async"
                     className="w-full h-full object-cover transition-all duration-700 ease-out group-hover:scale-105 brightness-50 group-hover:brightness-90"
                   />
                   <div className="absolute inset-0 border border-white/8 pointer-events-none" />
@@ -489,7 +539,11 @@ const Home: React.FC = () => {
               >
                 <img
                   src={work.src}
-                  alt={work.title}
+                  alt={[work.title, work.category && `${work.category} tattoo`, work.artist && `by ${work.artist}`].filter(Boolean).join(', ') || 'Tattoo by InkSmith Studios'}
+                  width={800}
+                  height={800}
+                  loading="lazy"
+                  decoding="async"
                   className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
                 />
 
@@ -586,10 +640,14 @@ const Home: React.FC = () => {
             <div className={`lg:w-1/2 relative group ${piercing.isVisible ? 'anim-elastic-right' : 'scroll-hidden'}`} style={piercing.isVisible ? { animationDelay: '0.15s' } : undefined}>
               <div className="absolute inset-0 bg-gradient-to-tr from-ink-accent/15 to-transparent rounded-2xl rotate-2 scale-105 opacity-60 group-hover:rotate-1 transition-transform duration-700" />
               <div className="relative h-[500px] md:h-[600px] w-full rounded-2xl overflow-hidden shadow-2xl border border-white/10">
-                <img
-                  src="/images/charles1.png"
-                  alt="Professional Piercing"
-                  className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                <Image
+                  src="/images/charles1.webp"
+                  alt="A piercer at InkSmith Studios working with sterile, single-use equipment"
+                  fill
+                  loading="lazy"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  quality={80}
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-ink-950/80 via-transparent to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-8">
@@ -637,7 +695,11 @@ const Home: React.FC = () => {
                 >
                   <img
                     src={piercingItem.img}
-                    alt={piercingItem.name}
+                    alt={piercingItem.name ? `${piercingItem.name} piercing at InkSmith Studios` : 'Body piercing at InkSmith Studios'}
+                    width={640}
+                    height={800}
+                    loading="lazy"
+                    decoding="async"
                     className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-110"
                   />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
@@ -664,7 +726,7 @@ const Home: React.FC = () => {
       <section ref={cta.ref} className="relative py-32 overflow-hidden z-10">
         {/* Background layers */}
         <div className="absolute inset-0 bg-gradient-to-br from-ink-900 via-ink-950 to-ink-950" />
-        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: `url("https://www.transparenttextures.com/patterns/asfalt-dark.png")` }} />
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E")` }} />
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-ink-accent/6 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-ink-accent/30 to-transparent" />
         <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
@@ -736,7 +798,8 @@ const Home: React.FC = () => {
             <div className="relative max-w-2xl max-h-[80vh] w-full h-full flex items-center justify-center" onClick={e => e.stopPropagation()}>
               <img
                 src={piercingTypes[selectedPiercing].img}
-                alt={piercingTypes[selectedPiercing].name}
+                alt={piercingTypes[selectedPiercing].name ? `${piercingTypes[selectedPiercing].name} piercing at InkSmith Studios` : 'Body piercing at InkSmith Studios'}
+                decoding="async"
                 className="max-w-full max-h-full object-contain rounded-2xl shadow-2xl shadow-black"
               />
               <div className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-black/80 backdrop-blur-md border border-white/10 px-8 py-3 rounded-full flex items-center gap-4 whitespace-nowrap">
