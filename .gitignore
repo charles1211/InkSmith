@@ -34,3 +34,8 @@ next-env.d.ts
 .vscode/*
 !.vscode/extensions.json
 .idea
+
+# Archived image originals kept by scripts/optimize-images.mjs.
+# Not committed: the optimised WebP files in public/images are what ship,
+# and the originals are already in git history.
+assets-src/
