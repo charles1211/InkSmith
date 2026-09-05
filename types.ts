@@ -39,11 +39,3 @@ export interface BookingFormData {
   referenceFile: File | null;
 }
 
-export interface GeminiIdeaResponse {
-  concepts: {
-    title: string;
-    description: string;
-    placementSuggestion: string;
-    estimatedTime: string;
-  }[];
-}

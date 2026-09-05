@@ -19,7 +19,7 @@ const StatCard: React.FC<StatCardProps> = ({ title, value, icon: Icon, trend }) 
         </span>
       )}
     </div>
-    <h3 className="text-gray-400 text-sm uppercase tracking-wider mb-1">{title}</h3>
+    <p className="text-gray-400 text-sm uppercase tracking-wider mb-1">{title}</p>
     <p className="text-2xl font-serif font-bold text-white">{value}</p>
   </div>
 );

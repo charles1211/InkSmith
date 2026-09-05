@@ -55,14 +55,24 @@ const Navbar: React.FC = () => {
 
   const navLinks: NavItem[] = [
     { name: 'Home', path: '/' },
+    {
+      name: 'Services',
+      path: '/services',
+      children: [
+        { name: 'Tattoos', path: '/services/tattoo' },
+        { name: 'Piercings', path: '/services/piercing' },
+        { name: 'Consultation', path: '/services/consultation' },
+        { name: 'Areas We Serve', path: '/locations' },
+      ]
+    },
     { name: 'Artists', path: '/artists' },
     { name: 'Portfolio', path: '/portfolio' },
     {
       name: 'Aftercare',
       path: '/aftercare',
       children: [
-        { name: 'Tattoo', path: '/aftercare?type=tattoo' },
-        { name: 'Piercing', path: '/aftercare?type=piercing' }
+        { name: 'Tattoo Care', path: '/aftercare/tattoo' },
+        { name: 'Piercing Care', path: '/aftercare/piercing' },
       ]
     },
     { name: 'Contact', path: '/contact' },
@@ -70,8 +80,13 @@ const Navbar: React.FC = () => {
 
   const isParentActive = (item: NavItem) => {
     if (pathname === item.path) return true;
+    // Highlight the parent on nested routes too, e.g. /services/tattoo under
+    // Services. The root path is excluded or it would match everything.
+    if (item.path !== '/' && pathname.startsWith(item.path + '/')) return true;
     if (item.children) {
-      return item.children.some(child => pathname === child.path.split('?')[0]);
+      return item.children.some(
+        child => pathname === child.path || pathname.startsWith(child.path + '/')
+      );
     }
     return false;
   };

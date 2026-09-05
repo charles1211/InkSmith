@@ -438,9 +438,9 @@ export default function MyBookingsPage() {
             <div className="w-16 h-16 bg-ink-accent/8 border border-ink-accent/15 rounded-2xl flex items-center justify-center mx-auto mb-5">
               <CalendarDays className="w-7 h-7 text-ink-accent/60" />
             </div>
-            <h3 className="text-lg font-serif font-bold text-white mb-2">
+            <h2 className="text-lg font-serif font-bold text-white mb-2">
               {filter === 'all' ? 'No bookings yet' : `No ${filter} bookings`}
-            </h3>
+            </h2>
             <p className="text-gray-500 text-sm mb-6">
               {filter === 'all'
                 ? "You haven't made any booking requests yet."
