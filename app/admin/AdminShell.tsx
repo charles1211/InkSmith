@@ -42,7 +42,7 @@ function MobileNav() {
   );
 }
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminShell({ children }: { children: React.ReactNode }) {
   return (
     <ProtectedRoute requireAdmin>
       <div className="min-h-screen bg-ink-950 pt-20 flex">

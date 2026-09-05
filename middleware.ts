@@ -48,8 +48,26 @@ export async function middleware(request: NextRequest) {
   return supabaseResponse;
 }
 
+/**
+ * A positive matcher, listing only the routes that actually need a session.
+ *
+ * This middleware refreshes the Supabase session cookie; it does not guard
+ * anything, since every auth check in this app happens client-side. Running it
+ * on public pages therefore bought nothing and cost a Supabase round trip on
+ * every request — including robots.txt, sitemap.xml, the web manifest and the
+ * generated icon and OG images. The browser client refreshes tokens on its own
+ * while a tab is open, so restricting it here is safe.
+ *
+ * If a server-side auth check is ever added to a public route, this matcher
+ * must be revisited.
+ */
 export const config = {
   matcher: [
-    '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
+    '/admin/:path*',
+    '/my-bookings',
+    '/login',
+    '/signup',
+    '/reset-password',
+    '/auth/:path*',
   ],
 };
