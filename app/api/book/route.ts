@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import nodemailer from 'nodemailer';
 import { verifyRecaptcha } from '../../../lib/recaptcha';
+import { getSiteUrl } from '../../../lib/seo/url';
+import { isValidPhone, normalisePhone } from '../../../lib/phone';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -114,7 +116,7 @@ function buildEmailHtml(data: {
 
               <!-- CTA -->
               <div style="text-align:center;margin-top:32px;display:flex;flex-direction:column;gap:12px;align-items:center;">
-                <a href="https://ink-smith.vercel.app/" style="display:inline-block;background:#d4af37;color:#000;font-size:11px;font-weight:900;letter-spacing:0.25em;text-transform:uppercase;text-decoration:none;padding:14px 32px;">
+                <a href="${getSiteUrl()}/" style="display:inline-block;background:#d4af37;color:#000;font-size:11px;font-weight:900;letter-spacing:0.25em;text-transform:uppercase;text-decoration:none;padding:14px 32px;">
                   Visit Our Website
                 </a>
                 <a href="https://www.instagram.com/inksmithtattoobda" style="display:inline-block;background:transparent;color:#d4af37;font-size:11px;font-weight:900;letter-spacing:0.25em;text-transform:uppercase;text-decoration:none;padding:14px 32px;border:1px solid #d4af37;">
@@ -128,7 +130,7 @@ function buildEmailHtml(data: {
           <tr>
             <td style="padding:28px 40px;text-align:center;">
               <p style="margin:0 0 6px;font-size:11px;color:#444;letter-spacing:0.15em;text-transform:uppercase;">
-                InkSmith Studios · Bahrain
+                InkSmith Studios · Hamilton, Bermuda
               </p>
               <p style="margin:0;font-size:11px;color:#333;">
                 If you did not make this request, please ignore this email.
@@ -174,6 +176,15 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  if (!isValidPhone(phone ?? '')) {
+    return NextResponse.json(
+      { error: 'Please enter a valid phone number.' },
+      { status: 400 }
+    );
+  }
+  // Store one canonical format, whatever shape the client sent.
+  const normalisedPhone = normalisePhone(phone) ?? phone;
+
   // ── Save to Supabase (using service role to bypass RLS) ──────────────────
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -185,7 +196,7 @@ export async function POST(req: NextRequest) {
     first_name: firstName,
     last_name: lastName,
     email,
-    phone,
+    phone: normalisedPhone,
     age_verification: ageVerification,
     services,
     tattoo_style: tattooStyle || null,
@@ -211,7 +222,7 @@ export async function POST(req: NextRequest) {
       to: email,
       subject: 'Booking Request Received — InkSmith Studios',
       html: buildEmailHtml({
-        firstName, lastName, email, phone, services,
+        firstName, lastName, email, phone: normalisedPhone, services,
         tattooStyle, tattooStyleOther, piercingPlacement, piercingPlacementOther,
         artistName, description, preferredDate, referenceUrl,
       }),

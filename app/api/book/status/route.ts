@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 import nodemailer from 'nodemailer';
+import { getSiteUrl } from '../../../../lib/seo/url';
 
 const transporter = nodemailer.createTransport({
   service: 'gmail',
@@ -134,11 +135,11 @@ function buildStatusEmail(data: {
 
               <!-- CTA -->
               <div style="text-align:center;margin-top:32px;">
-                <a href="https://ink-smith.vercel.app/my-bookings" style="display:inline-block;background:#d4af37;color:#000;font-size:11px;font-weight:900;letter-spacing:0.25em;text-transform:uppercase;text-decoration:none;padding:14px 32px;margin-bottom:12px;">
+                <a href="${getSiteUrl()}/my-bookings" style="display:inline-block;background:#d4af37;color:#000;font-size:11px;font-weight:900;letter-spacing:0.25em;text-transform:uppercase;text-decoration:none;padding:14px 32px;margin-bottom:12px;">
                   View My Bookings
                 </a>
                 <br />
-                <a href="https://ink-smith.vercel.app/" style="display:inline-block;margin-top:12px;background:transparent;color:#d4af37;font-size:11px;font-weight:900;letter-spacing:0.25em;text-transform:uppercase;text-decoration:none;padding:14px 32px;border:1px solid #d4af37;">
+                <a href="${getSiteUrl()}/" style="display:inline-block;margin-top:12px;background:transparent;color:#d4af37;font-size:11px;font-weight:900;letter-spacing:0.25em;text-transform:uppercase;text-decoration:none;padding:14px 32px;border:1px solid #d4af37;">
                   Visit Our Website
                 </a>
               </div>
@@ -149,7 +150,7 @@ function buildStatusEmail(data: {
           <tr>
             <td style="padding:28px 40px;text-align:center;">
               <p style="margin:0 0 6px;font-size:11px;color:#444;letter-spacing:0.15em;text-transform:uppercase;">
-                InkSmith Studios · Bahrain
+                InkSmith Studios · Hamilton, Bermuda
               </p>
               <p style="margin:0;font-size:11px;color:#333;">
                 If you did not make this request, please ignore this email.

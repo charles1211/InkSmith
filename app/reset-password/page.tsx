@@ -135,7 +135,7 @@ const ResetPassword: React.FC = () => {
   return (
     <div className="min-h-screen bg-ink-950 text-white pt-24 pb-12 flex items-center justify-center px-4">
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
-        <div className="absolute top-0 right-0 w-full h-full bg-[url('https://www.transparenttextures.com/patterns/wall-4-light.png')] opacity-5"></div>
+        <div className="absolute top-0 right-0 w-full h-full bg-[url('data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E')] opacity-5"></div>
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-ink-accent/5 rounded-full blur-[128px]"></div>
       </div>
 
@@ -144,7 +144,7 @@ const ResetPassword: React.FC = () => {
           <Link href="/" className="inline-block p-4 bg-ink-900/50 rounded-full border border-white/5 mb-4 group hover:border-ink-accent/50 transition-colors">
             <PenTool className="w-8 h-8 text-ink-accent group-hover:rotate-12 transition-transform" />
           </Link>
-          <h2 className="text-3xl font-serif font-bold text-white mb-2">New Password</h2>
+          <h1 className="text-3xl font-serif font-bold text-white mb-2">New Password</h1>
           <p className="text-gray-400 text-sm">Choose a strong password for your account.</p>
         </div>
 
